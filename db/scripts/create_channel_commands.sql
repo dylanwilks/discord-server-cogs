@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS ChannelCommands
+(
+ChannelID   INTEGER NOT NULL,
+CommandName VARCHAR(32) NOT NULL,
+CogName	    VARCHAR(16) NOT NULL,
+PRIMARY KEY (ChannelID, CommandName),
+FOREIGN KEY (ChannelID)
+    REFERENCES Channels(ChannelID)
+    ON DELETE CASCADE,
+FOREIGN KEY (CommandName)
+    REFERENCES Commands(CommandName)
+    ON DELETE CASCADE
+FOREIGN KEY (CogName)
+    REFERENCES Cogs(CogName)
+    ON DELETE CASCADE
+);

@@ -1,0 +1,2 @@
+DELETE FROM Cogs
+WHERE CogName = ?

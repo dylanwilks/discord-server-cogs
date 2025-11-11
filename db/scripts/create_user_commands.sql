@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS UserCommands
+(
+UserID	    INTEGER NOT NULL,
+CommandName VARCHAR(32) NOT NULL,
+CogName	    VARCHAR(16) NOT NULL,
+PRIMARY KEY (UserID, CommandName),
+FOREIGN KEY (UserID)
+    REFERENCES Users(UserID)
+    ON DELETE CASCADE,
+FOREIGN KEY (CommandName)
+    REFERENCES Commands(CommandName)
+    ON DELETE CASCADE,
+FOREIGN KEY (CogName)
+    REFERENCES Cogs(CogName)
+    ON DELETE CASCADE
+);

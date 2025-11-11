@@ -1,0 +1,3 @@
+INSERT INTO UserCogs 
+VALUES (?, ?)
+ON CONFLICT (UserID, CogName) DO NOTHING

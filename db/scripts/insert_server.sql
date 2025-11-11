@@ -1,0 +1,3 @@
+INSERT INTO Servers
+VALUES (?, ?)
+ON CONFLICT (ServerName) DO NOTHING

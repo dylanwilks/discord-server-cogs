@@ -1,0 +1,3 @@
+INSERT INTO Commands 
+VALUES (?, ?)
+ON CONFLICT (CommandName) DO NOTHING

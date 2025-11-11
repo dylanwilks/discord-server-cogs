@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS ChannelCogs 
+(
+ChannelID	INTEGER NOT NULL,
+CogName		VARCHAR(16) NOT NULL,
+PRIMARY KEY (ChannelID, CogName),
+FOREIGN KEY (ChannelID)
+    REFERENCES Channels(ChannelID)
+    ON DELETE CASCADE,
+FOREIGN KEY (CogName)
+    REFERENCES Cogs(CogName)
+    ON DELETE CASCADE
+);

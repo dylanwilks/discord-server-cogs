@@ -1,0 +1,3 @@
+INSERT INTO ChannelCogs
+VALUES (?, ?)
+ON CONFLICT (ChannelID, CogName) DO NOTHING
