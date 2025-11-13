@@ -1,8 +1,10 @@
 import os
 import sys
 import sqlite3
+import traceback
 import discord
 from typing import Tuple, List
+from datetime import datetime
 from discord.ext import commands
 
 
@@ -256,6 +258,10 @@ class BaseCog(commands.Cog):
             case _:
                 print(error)
                 await ctx.send(f"Miscellaneous error. Please check logs.")
+                log = ('[' + str(datetime.now()) + ']' + " " + 
+                       traceback.format_exc())
+                with open("/var/log/discord/errors.log", "a") as file:
+                    print(log, file=file)
 
     async def create_webhook(
             self,

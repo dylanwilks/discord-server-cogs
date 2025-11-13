@@ -76,11 +76,11 @@ class ProjectZomboidServer(
                     universal_newlines=True
                 )
             )
-            await asyncio.sleep(60)
+            await asyncio.sleep(120)
             state = await super().get_state()
             if (state & self.State.HOST_INACTIVE):
                 await ctx.send(
-                    "No response detected after 60 seconds of sending "
+                    "No response detected after 120 seconds of sending "
                     "magic packet. Host altar-server is likely in an "
                     "unwakeable state."
                 )
