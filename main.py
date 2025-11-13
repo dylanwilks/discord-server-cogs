@@ -146,7 +146,7 @@ class AlpineBot(commands.Bot):
 
 bot = AlpineBot("cogs", command_prefix="!", intents=intents)
 bot.run(
-    'MTM5MzAyMDkxMTE5NTc4NzM2Ng.GCUoCr.BvhTfnsKRzT7gkBBgxVoUbFEHNK63LxhlbF068',
+    'token goes here"
     log_handler=handler,
     log_level=logging.DEBUG
 )
