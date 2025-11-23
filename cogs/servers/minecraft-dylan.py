@@ -68,33 +68,16 @@ class MinecraftDylanServer(
         if (state & self.State.HOST_INACTIVE):
             await ctx.send("Host server altar-server is inactive. "
                            "Sending magic packet...")
-            await ctx.send(
-                subprocess.check_output(
-                    ['/bin/sh',
-                     '/root/discord-bot/scripts/wake-up.sh',
-                     'altar-server'
-                     ],
-                    universal_newlines=True
-                )
-            )
-            await asyncio.sleep(120)
-            state = await super().get_state()
-            if (state & self.State.HOST_INACTIVE):
-                await ctx.send(
-                    "No response detected after 120 seconds of sending "
-                    "magic packet. Host minecraft-dylan is likely in an "
-                    "unwakeable state."
-                )
-                return
+            await ctx.invoke(self.bot.get_command('altar-server wakeup'))
 
         await ctx.send("Starting minecraft-dylan...")
-        subprocess.check_output(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/podman_up.sh',
-             'altar-server',
-             'minecraft-dylan'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/podman_up.sh',
+            'altar-server',
+            'minecraft-dylan',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @mc_group.command(
@@ -110,13 +93,13 @@ class MinecraftDylanServer(
     @state_cooldown
     async def mc_stop(self, ctx: commands.Context) -> None:
         await ctx.send("Stopping minecraft-dylan...")
-        subprocess.check_output(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/podman_down.sh',
-             'altar-server',
-             'minecraft-dylan'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/podman_down.sh',
+            'altar-server',
+            'minecraft-dylan',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @mc_group.command(
@@ -129,36 +112,37 @@ class MinecraftDylanServer(
     @ServerCog.assert_perms(user_perm=0, channel_perm=0)
     @ServerCog.assert_state(state=State.ACTIVE)
     async def mc_players(self, ctx: commands.Context) -> None:
-        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        await ctx.send(
-            ansi_escape.sub('',
-                            subprocess.check_output(
-                                ['/bin/sh',
-                                 '/root/discord-bot/scripts/rcon.sh',
-                                 'minecraft-dylan',
-                                 '1.21.1-mod',
-                                 'list'
-                                 ],
-                                universal_newlines=True
-                            )
-                            )
+        get_players = await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/rcon.sh',
+            'minecraft-dylan',
+            '1.21.1-mod',
+            'list',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
+        await get_players.wait()
+        players, _ = await get_players.communicate()
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        await ctx.send(ansi_escape.sub('', str(players, 'utf-8')))
 
     @tasks.loop(seconds=30.0)
     async def check_state(self) -> None:
-        host_state = subprocess.call(
-            ['ping', '-c1', '-W1', 'altar-server'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        host_state = await asyncio.create_subprocess_exec(
+            'ping', '-c1', '-W1', 'altar-server',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
-        server_state = subprocess.call(
-            ['nc', '-zv', '-w3', 'altar-server', '25565'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        await host_state.wait()
+        server_state = await asyncio.create_subprocess_exec(
+            'nc', '-zv', '-w3', 'altar-server', '25565',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
+        await server_state.wait()
         state = await super().get_state()
         if ((state & (self.State.INACTIVE | self.State.HOST_INACTIVE)) and
-                (not server_state)):
+                (not server_state.returncode)):
             await super()._update_state(self.State.ACTIVE)
             server_channels = await super().get_channels()
             for channel_id in server_channels:
@@ -174,7 +158,7 @@ class MinecraftDylanServer(
                                    "minecraft-dylan. Server is active.")
 
         elif ((state & (self.State.ACTIVE | self.State.INACTIVE)) and
-              host_state):
+              host_state.returncode):
             await super()._update_state(self.State.HOST_INACTIVE)
             server_channels = await super().get_channels()
             if (state & self.State.ACTIVE):
@@ -195,7 +179,7 @@ class MinecraftDylanServer(
                     )
 
         elif ((state & (self.State.ACTIVE | self.State.HOST_INACTIVE)) and
-              (not host_state) and server_state):
+              (not host_state.returncode) and server_state.returncode):
             await super()._update_state(self.State.INACTIVE)
             server_channels = await super().get_channels()
             if (state & self.State.ACTIVE):
@@ -210,6 +194,10 @@ class MinecraftDylanServer(
                     user_dm = await user.create_dm()
                     await user_dm.send(f"No response from minecraft-dylan. "
                                        f"Server is inactive.")
+
+    @check_state.before_loop
+    async def before_check_state(self):
+        await self.bot.wait_until_ready()
 
     async def cog_load(self) -> None:
         self.check_state.start()

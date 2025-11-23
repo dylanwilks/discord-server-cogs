@@ -68,45 +68,16 @@ class SatisfactoryServer(
         if (state & self.State.HOST_INACTIVE):
             await ctx.send("Host server altar-server is inactive. "
                            "Sending magic packet...")
-            await ctx.send(
-                subprocess.check_output(
-                    ['/bin/sh',
-                     '/root/discord-bot/scripts/wake-up.sh',
-                     'altar-server'
-                     ],
-                    universal_newlines=True
-                )
-            )
-            await asyncio.sleep(60)
-            state = await super().get_state()
-            if (state & self.State.HOST_INACTIVE):
-                await ctx.send(
-                    "No response detected after 60 seconds of sending "
-                    "magic packet. Host altar-server is likely in an "
-                    "unwakeable state."
-                )
-                return
+            await ctx.invoke(self.bot.get_command('altar-server wakeup'))
 
         await ctx.send("Starting satisfactory-server...")
-        subprocess.check_output(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/podman_up_service.sh',
-             'altar-server',
-             'satisfactory-server',
-             'satisfactory-server'
-             ],
-            universal_newlines=True
-        )
-        await asyncio.sleep(60)
-        subprocess.check_output(
-            ['/bin/sh',
-             # use healthchecks when using systemd instead
-             '/root/discord-bot/scripts/podman_up_service.sh',
-             'altar-server',
-             'satisfactory-server',
-             'satisfactory-discord'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/podman_up.sh',
+            'altar-server',
+            'satisfactory-server',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @sf_group.command(
@@ -121,30 +92,32 @@ class SatisfactoryServer(
     @state_cooldown
     async def sf_stop(self, ctx: commands.Context) -> None:
         await ctx.send("Stopping satisfactory-server...")
-        subprocess.check_output(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/podman_down.sh',
-             'altar-server',
-             'satisfactory-server'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/podman_down.sh',
+            'altar-server',
+            'satisfactory-server',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @tasks.loop(seconds=30.0)
     async def check_state(self) -> None:
-        host_state = subprocess.call(
-            ['ping', '-c1', '-W1', 'altar-server'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        host_state = await asyncio.create_subprocess_exec(
+            'ping', '-c1', '-W1', 'altar-server',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
-        server_state = subprocess.call(
-            ['nc', '-zv', '-w3', 'altar-server', '7777'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        await host_state.wait()
+        server_state = await asyncio.create_subprocess_exec(
+            'nc', '-zv', '-w3', 'altar-server', '7777',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
+        await server_state.wait()
         state = await super().get_state()
         if ((state & (self.State.INACTIVE | self.State.HOST_INACTIVE)) and
-                (not server_state)):
+                (not server_state.returncode)):
             await super()._update_state(self.State.ACTIVE)
             server_channels = await super().get_channels()
             for channel_id in server_channels:
@@ -160,7 +133,7 @@ class SatisfactoryServer(
                                    "satisfactory-server. Server is active.")
 
         elif ((state & (self.State.ACTIVE | self.State.INACTIVE)) and
-              host_state):
+              host_state.returncode):
             await super()._update_state(self.State.HOST_INACTIVE)
             server_channels = await super().get_channels()
             if (state & self.State.ACTIVE):
@@ -181,7 +154,7 @@ class SatisfactoryServer(
                     )
 
         elif ((state & (self.State.ACTIVE | self.State.HOST_INACTIVE)) and
-              (not host_state) and server_state):
+              (not host_state.returncode) and server_state.returncode):
             await super()._update_state(self.State.INACTIVE)
             server_channels = await super().get_channels()
             if (state & self.State.ACTIVE):
@@ -196,6 +169,10 @@ class SatisfactoryServer(
                     user_dm = await user.create_dm()
                     await user_dm.send(f"No response from satisfactory-server. "
                                        f"Server is inactive.")
+
+    @check_state.before_loop
+    async def before_check_state(self):
+        await self.bot.wait_until_ready()
 
     async def cog_load(self) -> None:
         self.check_state.start()

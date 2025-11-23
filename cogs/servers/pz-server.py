@@ -67,33 +67,16 @@ class ProjectZomboidServer(
         if (state & self.State.HOST_INACTIVE):
             await ctx.send("Host server altar-server is inactive. "
                            "Sending magic packet...")
-            await ctx.send(
-                subprocess.check_output(
-                    ['/bin/sh',
-                     '/root/discord-bot/scripts/wake-up.sh',
-                     'altar-server'
-                     ],
-                    universal_newlines=True
-                )
-            )
-            await asyncio.sleep(120)
-            state = await super().get_state()
-            if (state & self.State.HOST_INACTIVE):
-                await ctx.send(
-                    "No response detected after 120 seconds of sending "
-                    "magic packet. Host altar-server is likely in an "
-                    "unwakeable state."
-                )
-                return
+            await ctx.invoke(self.bot.get_command('altar-server wakeup'))
 
         await ctx.send("Starting pz-server...")
-        subprocess.check_output(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/podman_up.sh',
-             'altar-server',
-             'pz-server'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/podman_up.sh',
+            'altar-server',
+            'pz-server',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @pz_group.command(
@@ -109,13 +92,13 @@ class ProjectZomboidServer(
     @state_cooldown
     async def pz_stop(self, ctx: commands.Context) -> None:
         await ctx.send("Stopping pz-server...")
-        subprocess.check_output(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/podman_down.sh',
-             'altar-server',
-             'pz-server'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/podman_down.sh',
+            'altar-server',
+            'pz-server',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @pz_group.command(
@@ -128,38 +111,43 @@ class ProjectZomboidServer(
     @ServerCog.assert_perms(user_perm=0, channel_perm=0)
     @ServerCog.assert_state(state=State.ACTIVE)
     async def pz_players(self, ctx: commands.Context) -> None:
-        await ctx.send(
-            subprocess.check_output(
-                ['/bin/sh',
-                 '/root/discord-bot/scripts/rcon.sh',
-                 'pz-server',
-                 'project-zomboid-server',
-                 'players'
-                 ],
-                universal_newlines=True
-            )
+        get_players = await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/rcon.sh',
+            'pz-server',
+            'project-zomboid-server',
+            'players',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
+        await get_players.wait()
+        players, _ = await get_players.communicate()
+        await ctx.send(str(players, 'utf-8'))
 
     @tasks.loop(seconds=30.0)
     async def check_state(self) -> None:
-        host_state1 = subprocess.call(
-            ['ping', '-c1', '-W1', 'altar-server'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        host_state1 = await asyncio.create_subprocess_exec(
+            'ping', '-c1', '-W1', 'altar-server',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
-        server_state = subprocess.call(
-            ['nc', '-zv', '-u', '-w1', 'altar-server', '16261'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        await host_state1.wait()
+        server_state = await asyncio.create_subprocess_exec(
+            'nc', '-zv', '-u', '-w1', 'altar-server', '16261',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
-        host_state2 = subprocess.call(
-            ['ping', '-c1', '-W1', 'altar-server'],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+        await server_state.wait()
+        host_state2 = await asyncio.create_subprocess_exec(
+            'ping', '-c1', '-W1', 'altar-server',
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL
         )
+        await host_state2.wait()
         state = await super().get_state()
         if ((state & (self.State.INACTIVE | self.State.HOST_INACTIVE)) and
-                (not (host_state1 | server_state | host_state2))):
+                (not (host_state1.returncode | server_state.returncode | 
+                      host_state2.returncode))):
             await super()._update_state(self.State.ACTIVE)
             server_channels = await super().get_channels()
             for channel_id in server_channels:
@@ -175,7 +163,7 @@ class ProjectZomboidServer(
                                    "pz-server. Server is active.")
 
         elif ((state & (self.State.ACTIVE | self.State.INACTIVE)) and
-              host_state2):
+              host_state2.returncode):
             await super()._update_state(self.State.HOST_INACTIVE)
             server_channels = await super().get_channels()
             if (state & self.State.ACTIVE):
@@ -196,7 +184,7 @@ class ProjectZomboidServer(
                     )
 
         elif ((state & (self.State.ACTIVE | self.State.HOST_INACTIVE)) and
-              server_state):
+              server_state.returncode):
             await super()._update_state(self.State.INACTIVE)
             server_channels = await super().get_channels()
             if (state & self.State.ACTIVE):
@@ -211,6 +199,10 @@ class ProjectZomboidServer(
                     user_dm = await user.create_dm()
                     await user_dm.send(f"No response from pz-server. "
                                        f"Server is inactive.")
+
+    @check_state.before_loop
+    async def before_check_state(self):
+        await self.bot.wait_until_ready()
 
     async def cog_load(self) -> None:
         self.check_state.start()

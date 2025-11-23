@@ -93,6 +93,12 @@ class ServerCog(OrderedCog):
         db.close()
         return state
 
+    class ServerError(commands.CommandError):
+        def __init__(self, message: str, server: str) -> None:
+            self.message = message
+            self.server = server 
+            super().__init__(self.message)
+
     class StateError(commands.CommandError):
         def __init__(self, message: str, state: 'State') -> None:
             self.message = message
@@ -127,6 +133,8 @@ class ServerCog(OrderedCog):
             case self.StateError():
                 await ctx.send(f"Command unavailable in current state: "
                                f"{error.state.name}")
+            case self.ServerError():
+                await ctx.send(error.message)
             case _:
                 await super().cog_command_error(ctx, error)
 

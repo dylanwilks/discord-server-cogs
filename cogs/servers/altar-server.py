@@ -73,21 +73,28 @@ class AltarServer(
             self,
             ctx: commands.Context
     ) -> None:
-        await ctx.send(
-            subprocess.check_output(
-                ['/bin/sh',
-                 '/root/discord-bot/scripts/wake-up.sh',
-                 'altar-server'
-                 ],
-                universal_newlines=True
-            )
+        wakeup_server = await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/wake-up.sh',
+            'altar-server',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
-        await asyncio.sleep(120)
+        await wakeup_server.wait()
+        out, _ = await wakeup_server.communicate()
+        await ctx.send(str(out, 'utf-8'))
+        time_passed = 0
         state = await super().get_state()
+        while (state & self.State.INACTIVE and time_passed <= 180):
+            await asyncio.sleep(10)
+            state = await super().get_state()
+            time_passed += 10
+
         if (state & self.State.INACTIVE):
-            await ctx.send("No response detected after 120 seconds of sending "
-                           "magic packet. Server altar-server is likely in an "
-                           "unwakeable state.")
+            raise ServerCog.ServerError(
+                f"Could not wake up server {self.qualified_name}.",
+                self.qualified_name
+            )
 
     @altar_group.command(
         name="hibernate",
@@ -104,24 +111,25 @@ class AltarServer(
             self,
             ctx: commands.Context
     ) -> None:
-        subprocess.Popen(
-            ['/bin/sh',
-             '/root/discord-bot/scripts/hibernate.sh',
-             'altar-server',
-             '&'
-             ],
-            universal_newlines=True
+        await asyncio.create_subprocess_exec(
+            '/bin/sh',
+            '/root/discord-bot/scripts/hibernate.sh',
+            'altar-server',
+            '&',
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
 
     @tasks.loop(seconds=30.0)
     async def check_state(self) -> None:
-        host_state = subprocess.call(
-            ['ping', '-c1', '-W1', 'altar-server'],
+        host_state = await asyncio.create_subprocess_exec(
+            'ping', '-c1', '-W1', 'altar-server',
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
+        await host_state.wait()
         state = await super().get_state()
-        if (state & self.State.INACTIVE and host_state == 0):
+        if (state & self.State.INACTIVE and host_state.returncode == 0):
             await super()._update_state(self.State.ACTIVE)
             server_channels = await super().get_channels()
             for channel_id in server_channels:
@@ -136,7 +144,7 @@ class AltarServer(
                 await user_dm.send("Response received from "
                                    "altar-server. Server is active.")
 
-        elif (state & self.State.ACTIVE and host_state != 0):
+        elif (state & self.State.ACTIVE and host_state.returncode != 0):
             await super()._update_state(self.State.INACTIVE)
             server_channels = await super().get_channels()
             for channel_id in server_channels:
@@ -150,6 +158,10 @@ class AltarServer(
                 user_dm = await user.create_dm()
                 await user_dm.send("No response from altar-server. "
                                    "Server is inactive.")
+
+    @check_state.before_loop
+    async def before_check_state(self):
+        await self.bot.wait_until_ready()
 
     async def cog_load(self) -> None:
         self.check_state.start()
