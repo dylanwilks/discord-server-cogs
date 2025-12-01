@@ -1,9 +1,10 @@
+import os
 import sqlite3
 import discord
 from discord.ext import commands
-from alerts import Alerts
-from basecog import BaseCog
-from orderedcog import OrderedCog
+from lib.basecog import BaseCog
+from lib.orderedcog import OrderedCog
+from lib.config import Config
 
 
 class OrderedCogDatabase(
@@ -28,28 +29,29 @@ class OrderedCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching UserPerms table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_user_perms_table.sql", "r")
+            open(f"{sql_dir}/select_user_perms_table.sql", "r")
                 as sql_select_user_perms_table,
         ):
             get_user_perms_records = sql_select_user_perms_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_user_perms_records)
         user_perms_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in user_perms_records:
             m_record = list(record)
             user = await self.bot.fetch_user(record[0])
             m_record[0] = user.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -70,30 +72,29 @@ class OrderedCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching ChannelPerms table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_channel_perms_table.sql",
-                "r"
-            ) as sql_select_channel_perms_table,
+            open(f"{sql_dir}/select_channel_perms_table.sql", "r") 
+                as sql_select_channel_perms_table,
         ):
             get_channel_perms_records = sql_select_channel_perms_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_channel_perms_records)
         channel_perms_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in channel_perms_records:
             m_record = list(record)
             channel = await self.bot.fetch_channel(record[0])
             m_record[0] = '#' + channel.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -124,30 +125,29 @@ class OrderedCogDatabase(
             return
 
         await ctx.send(f"Fetching UserPerms records linked to {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_cog_user_perm_records.sql",
-                "r"
-            ) as sql_select_cog_user_perm_records,
+            open(f"{sql_dir}/select_cog_user_perm_records.sql", "r") 
+                as sql_select_cog_user_perm_records,
         ):
             get_cog_users = sql_select_cog_user_perm_records.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_cog_users, (cog_name,))
         cog_user_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in cog_user_records:
             m_record = list(record)
             user = await self.bot.fetch_user(record[0])
             m_record[0] = user.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -179,31 +179,29 @@ class OrderedCogDatabase(
             return
 
         await ctx.send(f"Fetching ChannelPerms records linked to {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                ("/root/discord-bot/db/scripts/"
-                 "select_cog_channel_perm_records.sql"),
-                "r"
-            ) as sql_select_cog_channel_perm_records,
+            open(f"{sql_dir}/select_cog_channel_perm_records.sql", "r") 
+                as sql_select_cog_channel_perm_records,
         ):
             get_cog_channels = sql_select_cog_channel_perm_records.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_cog_channels, (cog_name,))
         cog_channel_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in cog_channel_records:
             m_record = list(record)
             channel = await self.bot.fetch_channel(record[0])
             m_record[0] = '#' + channel.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -251,30 +249,31 @@ class OrderedCogDatabase(
         await ctx.send(f"Setting permission {permission} "
                        f"for user {user.name} "
                        f"in cog {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/insert_user.sql", "r")
+            open(f"{sql_dir}/insert_user.sql", "r")
                 as sql_insert_user,
-            open("/root/discord-bot/db/scripts/insert_user_perm.sql", "r")
+            open(f"{sql_dir}/insert_user_perm.sql", "r")
                 as sql_insert_user_perm,
         ):
             add_user = sql_insert_user.read()
             set_user_permission = sql_insert_user_perm.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(add_user, (user_id,))
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         if (cursor.rowcount):
             user_dm = await user.create_dm()
-            await user_dm.send(Alerts.STARTUP)
+            await user_dm.send(eval(constants.messages.startup))
 
         cursor.execute(set_user_permission, (user_id, cog_name, permission))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @commands.command(
         name="set-channel-perm",
@@ -316,31 +315,32 @@ class OrderedCogDatabase(
         await ctx.send(f"Setting permission {permission} "
                        f"for channel #{channel.name} "
                        f"in cog {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/insert_channel.sql", "r")
+            open(f"{sql_dir}/insert_channel.sql", "r")
                 as sql_insert_channel,
-            open("/root/discord-bot/db/scripts/insert_channel_perm.sql", "r")
+            open(f"{sql_dir}/insert_channel_perm.sql", "r")
                 as sql_insert_channel_perm,
         ):
             add_channel = sql_insert_channel.read()
             set_channel_permission = sql_insert_channel_perm.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(add_channel, (channel_id,))
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         if (cursor.rowcount):
             self.cog.create_webhook(channel)
-            await channel.send(Alerts.STARTUP)
+            await channel.send(eval(constants.messages.startup))
 
         cursor.execute(set_channel_permission,
                        (channel_id, cog_name, permission))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @commands.command(
         name="remove-user-perm",
@@ -363,22 +363,23 @@ class OrderedCogDatabase(
         user = await self.bot.fetch_user(user_id)
         username = user.name
         await ctx.send(f"Removing record of user {username} and cog {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/delete_user_cog_perm.sql", "r")
+            open(f"{sql_dir}/delete_user_cog_perm.sql", "r")
                 as sql_delete_user_cog_perm,
         ):
             delete_user_cog_perm = sql_delete_user_cog_perm.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_user_cog_perm, (user_id, cog_name))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(constants.messages.db_update)
 
     @commands.command(
         name="remove-channel-perm",
@@ -402,22 +403,23 @@ class OrderedCogDatabase(
         channelname = channel.name
         await ctx.send(f"Removing record of channel {channelname} and cog "
                        f"{cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/delete_channel_cog_perm.sql", "r")
+            open(f"{sql_dir}/delete_channel_cog_perm.sql", "r")
                 as sql_delete_channel_cog_perm,
         ):
             delete_channel_cog_perm = sql_delete_channel_cog_perm.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_channel_cog_perm, (channel_id, cog_name))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(constants.messages.db_update)
 
     async def cog_load(self) -> None:
         for command in self.walk_commands():
@@ -433,13 +435,15 @@ class OrderedCogDatabase(
 
         self.db_cog.register_commands()
         await self.db_cog.create_webhooks()
-        print(f"Loaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.loaded_cog))
 
     def cog_unload(self) -> None:
         for command in self.walk_commands():
             self.db_cog.db_group.remove_command(command.name)
 
-        print(f"Unloaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.unloaded_cog))
 
 
 async def setup(bot) -> None:

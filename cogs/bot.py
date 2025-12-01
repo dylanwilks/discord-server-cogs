@@ -1,8 +1,9 @@
+import os
 import subprocess
 import discord
 from discord.ext import tasks, commands
-from alerts import Alerts
-from basecog import BaseCog
+from lib.basecog import BaseCog
+from lib.config import Config
 
 
 class BotControls(
@@ -22,7 +23,8 @@ class BotControls(
     )
     @commands.cooldown(1, 5, commands.BucketType.default)
     async def control_group(self, ctx: commands.Context) -> None:
-        await ctx.send("Subcommand not found.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(eval(constants.messages.servers.no_subcommand))
 
     @control_group.command(
         name="load-extension",
@@ -96,10 +98,12 @@ class BotControls(
     async def cog_load(self) -> None:
         self.register_commands()
         await self.create_webhooks()
-        print(f"Loaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.loaded_cog))
 
     async def cog_unload(self) -> None:
-        print(f"Unloaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.unloaded_cog))
 
 
 async def setup(bot: commands.Bot) -> None:

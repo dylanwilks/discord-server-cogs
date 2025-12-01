@@ -6,6 +6,7 @@ import discord
 from typing import Tuple, List
 from datetime import datetime
 from discord.ext import commands
+from lib.config import Config
 
 
 class BaseCog(commands.Cog):
@@ -13,47 +14,29 @@ class BaseCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open(
-                "/root/discord-bot/db/scripts/create_users.sql",
-                "r",
-            ) as sql_create_users,
-            open(
-                "/root/discord-bot/db/scripts/create_channels.sql",
-                "r",
-            ) as sql_create_channels,
-            open(
-                "/root/discord-bot/db/scripts/create_commands.sql",
-                "r",
-            ) as sql_create_commands,
-            open(
-                "/root/discord-bot/db/scripts/create_user_commands.sql",
-                "r",
-            ) as sql_create_user_commands,
-            open(
-                "/root/discord-bot/db/scripts/create_channel_commands.sql",
-                "r",
-            ) as sql_create_channel_commands,
-            open(
-                "/root/discord-bot/db/scripts/create_cogs.sql",
-                "r",
-            ) as sql_create_cogs,
-            open(
-                "/root/discord-bot/db/scripts/create_user_cogs.sql",
-                "r",
-            ) as sql_create_user_cogs,
-            open(
-                "/root/discord-bot/db/scripts/create_channel_cogs.sql",
-                "r",
-            ) as sql_create_channel_cogs,
-            open(
-                "/root/discord-bot/db/scripts/create_admins.sql",
-                "r",
-            ) as sql_create_admins,
-            open(
-                "/root/discord-bot/db/scripts/insert_cog.sql",
-                "r"
-            ) as sql_insert_cog,
+            open(f"{sql_dir}/create_users.sql", "r") 
+                as sql_create_users,
+            open(f"{sql_dir}/create_channels.sql", "r") 
+                as sql_create_channels,
+            open(f"{sql_dir}/create_commands.sql", "r") 
+                as sql_create_commands,
+            open(f"{sql_dir}/create_user_commands.sql", "r") 
+                as sql_create_user_commands,
+            open(f"{sql_dir}/create_channel_commands.sql", "r") 
+                as sql_create_channel_commands,
+            open(f"{sql_dir}/create_cogs.sql", "r") 
+                as sql_create_cogs,
+            open(f"{sql_dir}/create_user_cogs.sql", "r") 
+                as sql_create_user_cogs,
+            open(f"{sql_dir}/create_channel_cogs.sql", "r") 
+                as sql_create_channel_cogs,
+            open(f"{sql_dir}/create_admins.sql", "r") 
+                as sql_create_admins,
+            open(f"{sql_dir}/insert_cog.sql", "r") 
+                as sql_insert_cog,
         ):
             create_users_table = sql_create_users.read()
             create_channels_table = sql_create_channels.read()
@@ -66,10 +49,8 @@ class BaseCog(commands.Cog):
             create_admins_table = sql_create_admins.read()
             insert_cog = sql_insert_cog.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -93,16 +74,16 @@ class BaseCog(commands.Cog):
         db.close()
 
     async def get_users(self) -> Tuple[int, ...]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_user_cogs.sql", "r")
+            open(f"{sql_dir}/select_user_cogs.sql", "r")
                 as sql_select_user_cogs,
         ):
             fetch_users = sql_select_user_cogs.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -120,16 +101,16 @@ class BaseCog(commands.Cog):
         return users
 
     async def get_channels(self) -> Tuple[int, ...]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_channel_cogs.sql", "r")
+            open(f"{sql_dir}/select_channel_cogs.sql", "r")
                 as sql_select_channel_cogs,
         ):
             fetch_channels = sql_select_channel_cogs.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -148,16 +129,16 @@ class BaseCog(commands.Cog):
 
     @staticmethod
     async def get_command_users(command_name: str) -> Tuple[int, ...]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_command_users.sql", "r")
+            open(f"{sql_dir}/select_command_users.sql", "r")
                 as sql_select_command_users,
         ):
             fetch_users = sql_select_command_users.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -176,18 +157,16 @@ class BaseCog(commands.Cog):
 
     @staticmethod
     async def get_command_channels(command_name: str) -> Tuple[int, ...]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_command_channels.sql",
-                "r"
-            ) as sql_select_command_channels,
+            open(f"{sql_dir}/select_command_channels.sql", "r") 
+                as sql_select_command_channels,
         ):
             fetch_channels = sql_select_command_channels.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -206,16 +185,16 @@ class BaseCog(commands.Cog):
 
     @staticmethod
     async def get_admins() -> Tuple[int, ...]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_admins_table.sql", "r")
+            open(f"{sql_dir}/select_admins_table.sql", "r")
                 as sql_select_admins_table
         ):
             fetch_admins = sql_select_admins_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -234,15 +213,18 @@ class BaseCog(commands.Cog):
 
     async def cog_check(self, ctx: commands.Context) -> bool:
         permission: bool
+        config = Config.from_json(os.environ["BOT_CONFIG"])
         if isinstance(ctx.channel, discord.channel.DMChannel):
             users = await self.get_command_users(ctx.command.qualified_name)
             admins = await self.get_admins()
-            return ((ctx.author.id in users) or (ctx.author.id in admins))
+            return (config.settings.enable_user_commands and 
+                    ((ctx.author.id in users) or (ctx.author.id in admins)))
         else:
             channels = (
                 await self.get_command_channels(ctx.command.qualified_name)
             )
-            return ctx.channel.id in channels
+            return (config.settings.enable_channel_commands and 
+                    (ctx.channel.id in channels))
 
     async def cog_command_error(
             self,
@@ -258,9 +240,11 @@ class BaseCog(commands.Cog):
             case _:
                 print(error)
                 await ctx.send(f"Miscellaneous error. Please check logs.")
+                config = Config.from_json(os.environ["BOT_CONFIG"])
+                errors_log = config.logs.errors
                 log = ('[' + str(datetime.now()) + ']' + " " + 
                        traceback.format_exc())
-                with open("/var/log/discord/errors.log", "a") as file:
+                with open(errors_log, "a") as file:
                     print(log, file=file)
 
     async def create_webhook(
@@ -268,12 +252,8 @@ class BaseCog(commands.Cog):
             channel: discord.TextChannel
     ) -> discord.Webhook:
         if (not await channel.webhooks()):
-            with (
-                open(
-                    "/root/discord-bot/alpinelinux-icon.png",
-                    "rb"
-                ) as image,
-            ):
+            icon = os.environ["BOT_ICON"]
+            with open(icon, "rb") as image:
                 img = image.read()
                 img_b = bytearray(img)
                 webhook = await channel.create_webhook(
@@ -284,7 +264,8 @@ class BaseCog(commands.Cog):
             print(f"Created webhook {channel.name}-webhook with URL",
                   webhook.url)
 
-        webhook_dir = (f"/root/discord-bot/webhooks/{self.qualified_name}")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        webhook_dir = (f"{config.dir.webhooks}/{self.qualified_name}")
         if (not os.path.exists(webhook_dir)):
             os.makedirs(webhook_dir)
 
@@ -305,16 +286,16 @@ class BaseCog(commands.Cog):
         for command in self.walk_commands():
             command_names.append((command.qualified_name, self.qualified_name))
 
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/insert_command.sql", "r")
+            open(f"{sql_dir}/insert_command.sql", "r")
                 as sql_insert_command,
         ):
             insert_command = sql_insert_command.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -340,12 +321,14 @@ class BaseCog(commands.Cog):
         except commands.ExtensionAlreadyLoaded:
             pass
 
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         BaseCog.instances += 1
-        print(f"Loaded cog {self.qualified_name}.")
+        print(eval(constants.messages.loaded_cog))
 
     async def cog_unload(self) -> None:
         BaseCog.instances -= 1
         if (BaseCog.instances == 0):
             await self.bot.unload_extension("cogs._db-base")
 
-        print(f"Unloaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.unloaded_cog))

@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"enable_user_commands": true,
+		"enable_channel_commands": true,
+		"enable_start_message": false,
+		"message_limit": 2000
+	},
+
+	"dir": {
+		"cogs": "cogs",
+		"webhooks": "webhooks",
+		"scripts": "scripts",
+		"sql": "db/scripts"
+	},
+
+	"logs": {
+		"handler": "/var/log/discord/alpine-bot.log",
+		"errors": "/var/log/discord/errors.log",
+		"commands": "/var/log/discord/commands.log"
+	}
+}

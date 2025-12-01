@@ -1,9 +1,10 @@
+import os
 import sqlite3
 import discord
 from discord.ext import tasks, commands
-from alerts import Alerts
-from basecog import BaseCog
-from servercog import ServerCog
+from lib.basecog import BaseCog
+from lib.servercog import ServerCog
+from lib.config import Config
 
 
 class ServerCogDatabase(
@@ -25,28 +26,29 @@ class ServerCogDatabase(
     )
     async def print_servers_table(self, ctx: commands.Context) -> None:
         await ctx.send(f"Fetching Servers table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_servers_table.sql", "r")
+            open(f"{sql_dir}/select_servers_table.sql", "r")
                 as sql_select_servers_table,
         ):
             get_server_records = sql_select_servers_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_server_records)
         server_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in server_records:
             m_record = list(record)
             server_cog = self.bot.get_cog(record[0])
             m_record[1] = server_cog.State(record[1]).name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -76,23 +78,24 @@ class ServerCogDatabase(
             return
 
         await ctx.send(f"Removing server {server_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         await self.bot.remove_cog(server_name)
         with (
-            open("/root/discord-bot/db/scripts/delete_server.sql", "r")
+            open(f"{sql_dir}/delete_server.sql", "r")
                 as sql_delete_server,
         ):
             delete_server_record = sql_delete_server.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_server_record, (server_name,))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(constants.messages.db_update)
 
     async def cog_load(self) -> None:
         for command in self.walk_commands():
@@ -108,13 +111,15 @@ class ServerCogDatabase(
 
         self.db_cog.register_commands()
         await self.db_cog.create_webhooks()
-        print(f"Loaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.loaded_cog))
 
     async def cog_unload(self) -> None:
         for command in self.walk_commands():
             self.db_cog.db_group.remove_command(command.name)
 
-        print(f"Unloaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.unloaded_cog))
 
 
 async def setup(bot) -> None:

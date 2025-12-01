@@ -1,9 +1,12 @@
+import os
 import sqlite3
 import discord
 from discord.ext import commands
-from typing import List, Tuple
-from alerts import Alerts
-from basecog import BaseCog
+from typing import List, Tuple, Final
+from lib.basecog import BaseCog
+from lib.config import Config
+
+DB_COOLDOWN: Final[float] = 5.0
 
 
 class BaseCogDatabase(
@@ -20,11 +23,10 @@ class BaseCogDatabase(
             database records.
             """
     )
-    @commands.cooldown(1, 5)
+    @commands.cooldown(1, DB_COOLDOWN)
     async def db_group(self, ctx: commands.Context) -> None:
-        await ctx.send(f"Subcommand not found. Type in "
-                       f"{self.bot.command_prefix}help {ctx.command} for a "
-                       f"list of subcommands.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(eval(constants.messages.servers.no_subcommand))
 
     @db_group.command(
         name="print-users-table",
@@ -39,26 +41,27 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching Users table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_users_table.sql", "r")
+            open(f"{sql_dir}/select_users_table.sql", "r")
                 as sql_select_users_table
         ):
             get_user_records = sql_select_users_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_user_records)
         user_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = int(config.settings.message_limit)
         for record in user_records:
             user = await self.bot.fetch_user(record[0])
             new_row = user.name + ' ' + str(record) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -79,26 +82,27 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching Channels table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_channels_table.sql", "r")
+            open(f"{sql_dir}/select_channels_table.sql", "r")
                 as sql_select_channels_table,
         ):
             get_channel_records = sql_select_channels_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_channel_records)
         channel_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in channel_records:
             channel = await self.bot.fetch_channel(record[0])
             new_row = '#' + channel.name + ' ' + str(record) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -118,25 +122,26 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching Commands table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_commands_table.sql", "r")
+            open(f"{sql_dir}/select_commands_table.sql", "r")
                 as sql_select_commands_table,
         ):
             get_commands_records = sql_select_commands_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_commands_records)
         commands_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in commands_records:
             new_row = str(record) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -156,25 +161,26 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching Cogs table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_cogs_table.sql", "r")
+            open(f"{sql_dir}/select_cogs_table.sql", "r")
                 as sql_select_cogs_table,
         ):
             get_cogs_records = sql_select_cogs_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_cogs_records)
         cogs_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in cogs_records:
             new_row = str(record) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -195,28 +201,29 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching UserCogs table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/select_user_cogs_table.sql", "r")
+            open(f"{sql_dir}/select_user_cogs_table.sql", "r")
                 as sql_select_user_cogs_table,
         ):
             get_user_cogs_records = sql_select_user_cogs_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_user_cogs_records)
         user_cogs_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in user_cogs_records:
             m_record = list(record)
             user = await self.bot.fetch_user(record[0])
             m_record[0] = user.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -237,30 +244,29 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching ChannelCogs table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_channel_cogs_table.sql",
-                "r"
-            ) as sql_select_channel_cogs_table,
+            open(f"{sql_dir}/select_channel_cogs_table.sql", "r") 
+                as sql_select_channel_cogs_table,
         ):
             get_channel_cogs_records = sql_select_channel_cogs_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_channel_cogs_records)
         channel_cogs_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in channel_cogs_records:
             m_record = list(record)
             channel = await self.bot.fetch_channel(record[0])
             m_record[0] = "#" + channel.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -281,30 +287,29 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching UserCommands table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_user_commands_table.sql",
-                "r"
-            ) as sql_select_user_commands_table,
+            open(f"{sql_dir}/select_user_commands_table.sql", "r") 
+                as sql_select_user_commands_table,
         ):
             get_user_commands_records = sql_select_user_commands_table.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_user_commands_records)
         user_command_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in user_command_records:
             m_record = list(record)
             user = await self.bot.fetch_user(record[0])
             m_record[0] = user.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -325,32 +330,31 @@ class BaseCogDatabase(
             ctx: commands.Context
     ) -> None:
         await ctx.send(f"Fetching ChannelCommands table...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_channel_commands_table.sql",
-                "r"
-            ) as sql_select_channel_commands_table,
+            open(f"{sql_dir}/select_channel_commands_table.sql", "r") 
+                as sql_select_channel_commands_table,
         ):
             get_channel_commands_records = (
                 sql_select_channel_commands_table.read()
             )
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_channel_commands_records)
         channel_command_records = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in channel_command_records:
             m_record = list(record)
             channel = await self.bot.fetch_channel(record[0])
             m_record[0] = "#" + channel.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -377,30 +381,29 @@ class BaseCogDatabase(
     ) -> None:
         await ctx.send(f"Fetching UserCommands records "
                        f"linked to {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_command_user_records.sql",
-                "r"
-            ) as sql_select_command_user_records,
+            open(f"{sql_dir}/select_command_user_records.sql", "r") 
+                as sql_select_command_user_records,
         ):
             get_command_users = sql_select_command_user_records.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_command_users, (command_name,))
         command_users = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in command_users:
             m_record = list(record)
             user = await self.bot.fetch_user(record[0])
             m_record[0] = user.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -427,30 +430,29 @@ class BaseCogDatabase(
     ) -> None:
         await ctx.send(f"Fetching ChannelCommands records "
                        f"linked to {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_command_channel_records.sql",
-                "r"
-            ) as sql_select_command_channel_records,
+            open(f"{sql_dir}/select_command_channel_records.sql", "r") 
+                as sql_select_command_channel_records,
         ):
             get_command_channels = sql_select_command_channel_records.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_command_channels, (command_name,))
         command_channels = cursor.fetchall()
         db.close()
         message = ""
+        message_limit = config.settings.message_limit
         for record in command_channels:
             m_record = list(record)
             channel = await self.bot.fetch_channel(record[0])
             m_record[0] = "#" + channel.name
             new_row = str(tuple(m_record)) + '\n'
-            if (len(message) + len(new_row) > 2000):
+            if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
                 message = ""
 
@@ -477,25 +479,29 @@ class BaseCogDatabase(
                 description="Name of the command"
             )
     ) -> None:
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         try:
             user = await self.bot.fetch_user(user_id)
         except NotFound as e:
-            await ctx.send("Invalid User ID.")
+            await ctx.send(constants.messages.invalid_user)
             return
 
         command = self.bot.get_command(command_name)
         if (command is None):
-            await ctx.send("Invalid command name.")
+            await ctx.send(constants.messages.invalid_channel)
             return
 
         await ctx.send(f"Permitting user {user.name} "
                        f"to use command {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/insert_user.sql", "r")
+            open(f"{sql_dir}/insert_user.sql", "r")
                 as sql_insert_user,
-            open("/root/discord-bot/db/scripts/insert_user_command.sql", "r")
+            open(f"{sql_dir}/insert_user_command.sql", "r")
                 as sql_insert_user_command,
-            open("/root/discord-bot/db/scripts/insert_user_cog.sql", "r")
+            open(f"{sql_dir}/insert_user_cog.sql", "r")
                 as sql_insert_user_cog,
         ):
             add_user = sql_insert_user.read()
@@ -508,22 +514,19 @@ class BaseCogDatabase(
         for parent in command.parents:
             user_commands.append((user_id, parent.qualified_name, cog_name))
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(add_user, (user_id,))
         if (cursor.rowcount):
             user_dm = await user.create_dm()
-            await user_dm.send(Alerts.STARTUP)
+            await user_dm.send(eval(constants.messages.startup))
 
         cursor.executemany(add_user_command, user_commands)
         cursor.execute(add_cog_user, (user_id, cog_name))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="permit-channel-command",
@@ -544,25 +547,29 @@ class BaseCogDatabase(
                 description="Name of the command"
             )
     ) -> None:
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         try:
             channel = await self.bot.fetch_channel(channel_id)
         except NotFound as e:
-            await ctx.send("Invalid Channel ID.")
+            await ctx.send(constants.messages.invalid_channel)
             return
 
         command = self.bot.get_command(command_name)
         if (command is None):
-            await ctx.send("Invalid command name.")
+            await ctx.send(constants.messages.invalid_command)
             return
 
         await ctx.send(f"Permitting channel {channel.name} "
                        f"to use command {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/insert_channel.sql", "r")
+            open(f"{sql_dir}/insert_channel.sql", "r")
                 as sql_insert_channel,
-            open("/root/discord-bot/db/scripts/insert_channel_command.sql", "r")
+            open(f"{sql_dir}/insert_channel_command.sql", "r")
                 as sql_insert_channel_command,
-            open("/root/discord-bot/db/scripts/insert_channel_cog.sql", "r")
+            open(f"{sql_dir}/insert_channel_cog.sql", "r")
                 as sql_insert_channel_cog,
         ):
             add_channel = sql_insert_channel.read()
@@ -576,22 +583,19 @@ class BaseCogDatabase(
             channel_commands.append(
                 (channel_id, parent.qualified_name, cog_name))
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(add_channel, (channel_id,))
         if (cursor.rowcount):
             await self.create_webhook(channel)
-            await channel.send(Alerts.STARTUP)
+            await channel.send(eval(constants.messages.startup))
 
         cursor.executemany(add_channel_command, channel_commands)
         cursor.execute(add_cog_channel, (channel_id, cog_name))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="permit-user-cog",
@@ -612,26 +616,30 @@ class BaseCogDatabase(
                 description="Name of the cog"
             )
     ) -> None:
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         try:
             user = await self.bot.fetch_user(user_id)
         except NotFound as e:
-            await ctx.send("Invalid User ID.")
+            await ctx.send(constants.messages.invalid_user)
             return
 
         cog = self.bot.get_cog(cog_name)
         if (cog is None or
                 not issubclass(type(cog), BaseCog)):
-            await ctx.send("Invalid cog name.")
+            await ctx.send(constants.messages.invalid_cog)
             return
 
         await ctx.send(f"Permitting user {user.name} to use commands in cog "
                        f"{cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/insert_user.sql", "r")
+            open(f"{sql_dir}/insert_user.sql", "r")
                 as sql_insert_user,
-            open("/root/discord-bot/db/scripts/insert_user_command.sql", "r")
+            open(f"{sql_dir}/insert_user_command.sql", "r")
                 as sql_insert_user_command,
-            open("/root/discord-bot/db/scripts/insert_user_cog.sql", "r")
+            open(f"{sql_dir}/insert_user_cog.sql", "r")
                 as sql_insert_user_cog,
         ):
             add_user = sql_insert_user.read()
@@ -645,22 +653,19 @@ class BaseCogDatabase(
                 user_commands.append(
                     (user_id, parent.qualified_name, cog_name))
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(add_user, (user_id,))
         if (cursor.rowcount):
             user_dm = await user.create_dm()
-            await user_dm.send(Alerts.STARTUP)
+            await user_dm.send(eval(constants.messages.startup))
 
         cursor.executemany(add_user_command, user_commands)
         cursor.execute(add_cog_user, (user_id, cog_name))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="permit-channel-cog",
@@ -681,26 +686,30 @@ class BaseCogDatabase(
                 description="Name of the cog"
             )
     ) -> None:
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         try:
             channel = await self.bot.fetch_channel(channel_id)
         except NotFound as e:
-            await ctx.send("Invalid User ID.")
+            await ctx.send(constants.messages.invalid_channel)
             return
 
         cog = self.bot.get_cog(cog_name)
         if (cog is None or
                 not issubclass(type(cog), BaseCog)):
-            await ctx.send("Invalid cog name.")
+            await ctx.send(constants.messages.invalid_cog)
             return
 
         await ctx.send(f"Permitting channel {channel.name} to use commands in "
                        f"cog {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/insert_channel.sql", "r")
+            open(f"{sql_dir}/insert_channel.sql", "r")
                 as sql_insert_channel,
-            open("/root/discord-bot/db/scripts/insert_channel_command.sql", "r")
+            open(f"{sql_dir}/insert_channel_command.sql", "r")
                 as sql_insert_channel_command,
-            open("/root/discord-bot/db/scripts/insert_channel_cog.sql", "r")
+            open(f"{sql_dir}/insert_channel_cog.sql", "r")
                 as sql_insert_channel_cog,
         ):
             add_channel = sql_insert_channel.read()
@@ -715,22 +724,19 @@ class BaseCogDatabase(
                 channel_commands.append(
                     (channel_id, parent.qualified_name, cog_name))
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(add_channel, (channel_id,))
         if (cursor.rowcount):
             await self.create_webhook(channel)
-            await channel.send(Alerts.STARTUP)
+            await channel.send(eval(constants.messages.startup))
 
         cursor.executemany(add_channel_command, channel_commands)
         cursor.execute(add_cog_channel, (channel_id, cog_name))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-user",
@@ -749,22 +755,23 @@ class BaseCogDatabase(
         user = await self.bot.fetch_user(user_id)
         username = user.name
         await ctx.send(f"Deleting user {username} from database...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/delete_user.sql", "r")
+            open(f"{sql_dir}/delete_user.sql", "r")
                 as sql_delete_user,
         ):
             delete_user = sql_delete_user.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_user, (user_id,))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-channel",
@@ -782,25 +789,26 @@ class BaseCogDatabase(
     ) -> None:
         channel = await self.bot.fetch_channel(channel_id)
         webhooks = await channel.webhooks()
-        await webhooks[0].delete(reason="Channel deleted from database.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await webhooks[0].delete(reason=constants.messages.deleted_channel)
         channel_name = channel.name
         await ctx.send(f"Deleting channel {channel_name} from database...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/delete_channel.sql", "r")
+            open(f"{sql_dir}/delete_channel.sql", "r")
                 as sql_delete_channel,
         ):
             delete_channel = sql_delete_channel.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_channel, (channel_id,))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.update_db)
 
     @db_group.command(
         name="delete-cog",
@@ -818,9 +826,10 @@ class BaseCogDatabase(
                 description="Name of the cog"
             )
     ) -> None:
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         cog = self.bot.get_cog(cog_name)
         if (cog is None):
-            await ctx.send("Invalid cog name.")
+            await ctx.send(constants.messages.invalid_cog)
             return
 
         await ctx.send(f"Deleting channel {channel_name} from database...")
@@ -829,26 +838,26 @@ class BaseCogDatabase(
             command_names.append((command.qualified_name,))
 
         self.bot.remove_cog(cog_name)
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/delete_command.sql", "r")
+            open(f"{sql_dir}/delete_command.sql", "r")
                 as sql_delete_cog,
-            open("/root/discord-bot/db/scripts/delete_cog.sql", "r")
+            open(f"{sql_dir}/delete_cog.sql", "r")
                 as sql_delete_command,
         ):
             delete_cog = sql_delete_cog.read()
             delete_command = sql_delete_command.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.executemany(delete_command, command_names)
         cursor.execute(delete_cog, (cog_name,))
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-user-command",
@@ -875,20 +884,17 @@ class BaseCogDatabase(
         command = self.bot.get_command(command_name)
         await ctx.send(f"Deleting user {username} from "
                        f"command {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_user_commands_like.sql",
-                "r"
-            ) as sql_select_user_commands_like,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_users.sql",
-                "r"
-            ) as sql_delete_orphan_users,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_user_cogs.sql",
-                "r"
-            ) as sql_delete_orphan_user_cogs,
-            open("/root/discord-bot/db/scripts/delete_user_command.sql", "r")
+            open(f"{sql_dir}/select_user_commands_like.sql", "r") 
+                as sql_select_user_commands_like,
+            open(f"{sql_dir}/delete_orphan_users.sql", "r") 
+                as sql_delete_orphan_users,
+            open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r") 
+                as sql_delete_orphan_user_cogs,
+            open(f"{sql_dir}/delete_user_command.sql", "r")
                 as sql_delete_user_command,
         ):
             select_commands_like = sql_select_user_commands_like.read()
@@ -896,10 +902,7 @@ class BaseCogDatabase(
             delete_orphan_user_cogs = sql_delete_orphan_user_cogs.read()
             delete_orphan_users = sql_delete_orphan_users.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_user_command_records, (user_id, command_name))
@@ -919,7 +922,7 @@ class BaseCogDatabase(
         cursor.execute(delete_orphan_users)
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-channel-command",
@@ -946,27 +949,20 @@ class BaseCogDatabase(
         command = self.bot.get_command(command_name)
         await ctx.send(f"Deleting channel #{channel_name} "
                        f"from command {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/select_channel_commands_like.sql",
-                "r"
-            ) as sql_select_channel_commands_like,
-            open(
-                "/root/discord-bot/db/scripts/delete_channel_command.sql",
-                "r"
-            ) as sql_delete_channel_command,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_channel_cogs.sql",
-                "r"
-            ) as sql_delete_orphan_channel_cogs,
-            open(
-                "/root/discord-bot/db/scripts/select_orphan_channels.sql",
-                "r"
-            ) as sql_select_orphan_channels,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_channels.sql",
-                "r"
-            ) as sql_delete_orphan_channels,
+            open(f"{sql_dir}/select_channel_commands_like.sql", "r") 
+                as sql_select_channel_commands_like,
+            open(f"{sql_dir}/delete_channel_command.sql", "r") 
+                as sql_delete_channel_command,
+            open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r") 
+                as sql_delete_orphan_channel_cogs,
+            open(f"{sql_dir}/select_orphan_channels.sql", "r") 
+                as sql_select_orphan_channels,
+            open(f"{sql_dir}/delete_orphan_channels.sql", "r") 
+                as sql_delete_orphan_channels,
         ):
             select_commands_like = sql_select_channel_commands_like.read()
             delete_channel_command_records = sql_delete_channel_command.read()
@@ -974,10 +970,7 @@ class BaseCogDatabase(
             get_orphan_channels = sql_select_orphan_channels.read()
             delete_orphan_channels = sql_delete_orphan_channels.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(
@@ -1003,12 +996,13 @@ class BaseCogDatabase(
         cursor.execute(delete_orphan_channels)
         db.commit()
         db.close()
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         for channel_id in channel_ids:
             channel = await self.bot.fetch_channel(channel_id)
             webhooks = await channel.webhooks()
-            await webhooks[0].delete(reason="Channel deleted from database.")
+            await webhooks[0].delete(reason=constants.messages.deleted_channel)
 
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-user-cog",
@@ -1032,28 +1026,22 @@ class BaseCogDatabase(
         username = user.name
         cog = self.bot.get_cog(cog_name)
         await ctx.send(f"Deleting user {username} from cog {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/delete_user_cog.sql",
-                "r"
-            ) as sql_delete_user_cog,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_user_cogs.sql",
-                "r"
-            ) as sql_delete_orphan_user_cogs,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_users.sql",
-                "r"
-            ) as sql_delete_orphan_users,
+            open(f"{sql_dir}/delete_user_cog.sql", "r") 
+                as sql_delete_user_cog,
+            open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r") 
+                as sql_delete_orphan_user_cogs,
+            open(f"{sql_dir}/delete_orphan_users.sql", "r") 
+                as sql_delete_orphan_users,
         ):
             delete_user_cog = sql_delete_user_cog.read()
             delete_orphan_user_cogs = sql_delete_orphan_user_cogs.read()
             delete_orphan_users = sql_delete_orphan_users.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_user_cog, (user_id, cog_name))
@@ -1061,7 +1049,8 @@ class BaseCogDatabase(
         cursor.execute(delete_orphan_users)
         db.commit()
         db.close()
-        await ctx.send("Database successfully updated.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-channel-cog",
@@ -1082,36 +1071,28 @@ class BaseCogDatabase(
             )
     ) -> None:
         channel = await self.bot.fetch_channel(channel_id)
-        channelname = channel.name
+        channel_name = channel.name
         cog = self.bot.get_cog(cog_name)
-        await ctx.send(f"Deleting channel {channelname} from cog {cog_name}...")
+        await ctx.send(f"Deleting channel {channel_name} from cog {cog_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open(
-                "/root/discord-bot/db/scripts/delete_channel_cog.sql",
-                "r"
-            ) as sql_delete_channel_cog,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_channel_cogs.sql",
-                "r"
-            ) as sql_delete_orphan_channel_cogs,
-            open(
-                "/root/discord-bot/db/scripts/select_orphan_channels.sql",
-                "r"
-            ) as sql_select_orphan_channels,
-            open(
-                "/root/discord-bot/db/scripts/delete_orphan_channels.sql",
-                "r"
-            ) as sql_delete_orphan_channels,
+            open(f"{sql_dir}/delete_channel_cog.sql", "r") 
+                as sql_delete_channel_cog,
+            open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r") 
+                as sql_delete_orphan_channel_cogs,
+            open(f"{sql_dir}/select_orphan_channels.sql", "r") 
+                as sql_select_orphan_channels,
+            open(f"{sql_dir}/delete_orphan_channels.sql", "r") 
+                as sql_delete_orphan_channels,
         ):
             delete_channel_cog = sql_delete_channel_cog.read()
             delete_orphan_channel_cogs = sql_delete_orphan_channel_cogs.read()
             get_orphan_channels = sql_select_orphan_channels.read()
             delete_orphan_channels = sql_delete_orphan_channels.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_channel_cog, (channel_id, cog_name))
@@ -1123,12 +1104,13 @@ class BaseCogDatabase(
         cursor.execute(delete_orphan_channels)
         db.commit()
         db.close()
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         for channel_id in channel_ids:
             channel = await self.bot.fetch_channel(channel_id)
             webhooks = await channel.webhooks()
-            await webhooks[0].delete(reason="Channel deleted from database.")
+            await webhooks[0].delete(reason=constants.messages.deleted_channel)
 
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     @db_group.command(
         name="delete-command",
@@ -1147,14 +1129,17 @@ class BaseCogDatabase(
             )
     ) -> None:
         await ctx.send(f"Removing command {command_name}...")
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
+        db_path = os.environ["BOT_DB"]
         with (
-            open("/root/discord-bot/db/scripts/delete_command.sql", "r")
+            open(f"{sql_dir}/delete_command.sql", "r")
                 as sql_delete_command,
-            open("/root/discord-bot/db/scripts/delete_orphan_users.sql", "r")
+            open(f"{sql_dir}/delete_orphan_users.sql", "r")
                 as sql_delete_orphan_users,
-            open("/root/discord-bot/db/scripts/select_orphan_channels.sql", "r")
+            open(f"{sql_dir}/select_orphan_channels.sql", "r")
                 as sql_select_orphan_channels,
-            open("/root/discord-bot/db/scripts/delete_orphan_channels.sql", "r")
+            open(f"{sql_dir}/delete_orphan_channels.sql", "r")
                 as sql_delete_orphan_channels,
         ):
             delete_command_record = sql_delete_command.read()
@@ -1162,10 +1147,7 @@ class BaseCogDatabase(
             get_orphan_channels = sql_select_orphan_channels.read()
             delete_orphan_channels = sql_delete_orphan_channels.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(delete_command_record, (command_name,))
@@ -1177,20 +1159,23 @@ class BaseCogDatabase(
         cursor.execute(delete_orphan_channels)
         db.commit()
         db.close()
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         for channel_id in channel_ids:
             channel = await self.bot.fetch_channel(channel_id)
             webhooks = await channel.webhooks()
-            await webhooks[0].delete(reason="Channel deleted from database.")
+            await webhooks[0].delete(reason=constants.messages.deleted_channel)
 
-        await ctx.send("Database successfully updated.")
+        await ctx.send(constants.messages.db_update)
 
     async def cog_load(self) -> None:
         self.register_commands()
         await self.create_webhooks()
-        print(f"Loaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.loaded_cog))
 
     async def cog_unload(self) -> None:
-        print(f"Unloaded cog {self.qualified_name}.")
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+        print(eval(constants.messages.unloaded_cog))
 
 
 async def setup(bot) -> None:

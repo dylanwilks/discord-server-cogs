@@ -1,0 +1,27 @@
+{
+	"servers": {
+		"altar-server": {
+			"max_start_time": 180,
+			"check_start_time": 10
+		},
+
+		"wilkz-nas": {
+			"max_start_time": 180,
+			"check_start_time": 10
+		},
+
+		"pz-server": {
+			"host_server": "altar-server",
+			"container_name1": "project-zomboid-server"
+		},
+
+		"minecraft-dylan": {
+			"host_server": "altar-server",
+			"container_name1": "1.21.1-mod"
+		},
+
+		"satisfactory-server": {
+			"host_server": "altar-server"
+		}
+	}
+}

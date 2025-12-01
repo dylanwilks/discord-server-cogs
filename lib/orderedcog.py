@@ -4,8 +4,8 @@ import sqlite3
 import discord
 from typing import Callable, Optional
 from discord.ext import commands
-from basecog import BaseCog
-from alerts import Alerts
+from lib.basecog import BaseCog
+from lib.config import Config
 
 
 class OrderedCog(BaseCog):
@@ -13,23 +13,19 @@ class OrderedCog(BaseCog):
 
     def __init__(self, bot: commands.Bot) -> None:
         super().__init__(bot)
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open(
-                "/root/discord-bot/db/scripts/create_user_perms.sql",
-                "r",
-            ) as sql_create_user_perms,
-            open(
-                "/root/discord-bot/db/scripts/create_channel_perms.sql",
-                "r",
-            ) as sql_create_channel_perms,
+            open(f"{sql_dir}/create_user_perms.sql", "r") 
+                as sql_create_user_perms,
+            open(f"{sql_dir}/create_channel_perms.sql", "r") 
+                as sql_create_channel_perms,
         ):
             create_user_perms_table = sql_create_user_perms.read()
             create_channel_perms_table = sql_create_channel_perms.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -44,16 +40,16 @@ class OrderedCog(BaseCog):
         db.close()
 
     async def get_user_perm(self, user_id: int) -> Optional[int]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_user_perm.sql", "r")
+            open(f"{sql_dir}/select_user_perm.sql", "r")
                 as sql_select_user_perm,
         ):
             fetch_user_perm = sql_select_user_perm.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(
@@ -68,16 +64,16 @@ class OrderedCog(BaseCog):
             return user_perm[0]
 
     async def get_channel_perm(self, channel_id: int) -> Optional[int]:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_channel_perm.sql", "r")
+            open(f"{sql_dir}/select_channel_perm.sql", "r")
                 as sql_select_channel_perm,
         ):
             fetch_channel_perm = sql_select_channel_perm.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(
@@ -137,7 +133,8 @@ class OrderedCog(BaseCog):
     ) -> None:
         match error:
             case self.PermissionError():
-                await ctx.send(Alerts.NO_COMMAND_PERM)
+                constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+                await ctx.send(constants.messages.no_permission)
             case _:
                 await super().cog_command_error(ctx, error)
 

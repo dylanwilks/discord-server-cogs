@@ -8,16 +8,17 @@ import discord
 import typing
 import traceback
 import sqlite3
+import dotenv
 from typing import Any, Tuple, Mapping
 from datetime import datetime
 from discord.ext import commands, tasks
-sys.path.append('cogs')
-sys.path.append('cogs/servers')
-sys.path.append('lib')
-from alerts import Alerts
+from lib.config import Config
 
+dotenv.load_dotenv()
+config = Config.from_json(os.environ["BOT_CONFIG"])
+constants = Config.from_json(os.environ["BOT_CONSTANTS"])
 handler = logging.FileHandler(
-    filename='/var/log/discord/alpine-bot.log',
+    filename=config.logs.handler,
     encoding='utf-8',
     mode='w'
 )
@@ -26,9 +27,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
+
 # Number of features here taken from fallendeity
-
-
 class AlpineBot(commands.Bot):
     _watcher: asyncio.Task
 
@@ -53,6 +53,10 @@ class AlpineBot(commands.Bot):
                 print(f"Loaded extension {file}")
             except commands.ExtensionError as e:
                 print(f"Failed to load extension {file}: {e}")
+                log = ('[' + str(datetime.now()) + ']' + " " + 
+                       traceback.format_exc())
+                with open(config.logs.errors, "a") as file:
+                    print(log, file=file)
 
     async def _cog_watcher(self) -> None:
         print("Watching for changes...")
@@ -76,7 +80,8 @@ class AlpineBot(commands.Bot):
                     print(f"Failed to reload extension {ext}: {e}")
 
             last = time.time()
-            await asyncio.sleep(5)
+            sleep_time = float(os.getenv("BOT_WATCHER_SECONDS", 1))
+            await asyncio.sleep(sleep_time)
 
     async def on_error(
             self,
@@ -88,24 +93,29 @@ class AlpineBot(commands.Bot):
                           f"{traceback.format_exc()}.")
 
     async def on_ready(self) -> None:
-        if self.user.name != 'Alpine Bot':
-            await self.user.edit(username='Alpine Bot')
+        bot_name = os.getenv("BOT_NAME", "")
+        if (bot_name != "" and self.user.name != bot_name):
+            await self.user.edit(username=bot_name)
+        
+        bot_icon = os.getenv("BOT_ICON", "")
+        if (bot_icon != ""):
+            with open(bot_icon, 'rb') as image:
+                await self.user.edit(avatar=image.read())
 
         print(f'Logged in as {self.user}.')
         self.check_name.start()
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_users_table.sql", "r")
+            open(f"{sql_dir}/select_users_table.sql", "r")
                 as sql_select_users_table,
-            open("/root/discord-bot/db/scripts/select_channels_table.sql", "r")
+            open(f"{sql_dir}/select_channels_table.sql", "r")
                 as sql_select_channels_table,
         ):
             get_users_table = sql_select_users_table.read()
             get_channels_table = sql_select_channels_table.read()
-
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_users_table)
@@ -113,16 +123,19 @@ class AlpineBot(commands.Bot):
         cursor.execute(get_channels_table)
         channel_records = cursor.fetchall()
         db.close()
-        for record in user_records:
-            user = await self.fetch_user(record[0])
-            user_dm = await user.create_dm()
-            await user_dm.send(Alerts.STARTUP)
+        enable_start_message = config.settings.enable_start_message
+        if (enable_start_message):
+            msg_startup = eval(constants.messages.startup)
+            for record in user_records:
+                user = await self.fetch_user(record[0])
+                user_dm = await user.create_dm()
+                await user_dm.send(msg_startup)
 
-        for record in channel_records:
-            channel = await self.fetch_channel(record[0])
-            await channel.send(Alerts.STARTUP)
+            for record in channel_records:
+                channel = await self.fetch_channel(record[0])
+                await channel.send(msg_startup)
 
-    async def on_command_completion(self, ctx: commands.Context) -> None:
+    async def on_command(self, ctx: commands.Context) -> None:
         log = ('[' + str(datetime.now()) + ']' + " " + ctx.author.name +
                " issued_command " + ctx.message.content + " in ")
         if isinstance(ctx.channel, discord.channel.DMChannel):
@@ -131,22 +144,25 @@ class AlpineBot(commands.Bot):
             log += "#" + ctx.channel.name + "."
 
         print(log)
-        with open("/var/log/discord/commands.log", "a") as file:
+        with open(config.logs.commands, "a") as file:
             print(log, file=file)
 
     async def setup_hook(self) -> None:
         await self._load_extensions()
         self._watcher = self.loop.create_task(self._cog_watcher())
 
-    @tasks.loop(minutes=10.0)
+    @tasks.loop(minutes=float(os.getenv("BOT_NAME_MINUTES", 10.0)))
     async def check_name(self) -> None:
-        if (self.user.name != 'Alpine Bot'):
-            await self.user.edit(username='Alpine Bot')
+        bot_name = os.getenv("BOT_NAME", "")
+        if (bot_name != "" and self.user.name != bot_name):
+            await self.user.edit(username=bot_name)
 
 
-bot = AlpineBot("cogs", command_prefix="!", intents=intents)
+command_prefix = os.environ["BOT_PREFIX"]
+bot = AlpineBot(config.dir.cogs, command_prefix=command_prefix, intents=intents)
+bot_token = os.environ["BOT_TOKEN"]
 bot.run(
-    'token goes here"
+    bot_token,
     log_handler=handler,
     log_level=logging.DEBUG
 )

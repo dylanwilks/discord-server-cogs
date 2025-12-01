@@ -1,0 +1,23 @@
+{
+	"messages": {
+		"startup": "f\"Bot started. Type {self.bot.command_prefix}help for a list of commands.\"",
+		"loaded_cog": "f\"Loaded cog {self.qualified_name}.\"",
+		"unloaded_cog": "f\"Unloaded cog {self.qualified_name}.\"",
+		"db_update": "Database successfully updated.",
+		"no_permission": "You do not have permission for this command.",
+		"invalid_command": "Invalid command name.",
+		"invalid_user": "Invalid user ID.",
+		"invalid_channel": "Invalid channel ID.",
+		"invalid_cog": "Invalid cog name.",
+		"deleted_channel": "Channel deleted from database.",
+		"servers": {
+			"response": "f\"Response received from {self.qualified_name}. Server is active.\"",
+			"no_response": "f\"No response from {self.qualified_name}. Server is inactive.\"",
+			"no_subcommand": "f\"Subcommand not found. Type in {self.bot.command_prefix}help {ctx.command} for a list of subcommands.\"",
+			"state": "f\"{self.qualified_name} state: {state.name}\"",
+			"host_inactive": "f\"Host server {host_server} is inactive. Sending magic packet...\"",
+			"start": "f\"Starting {self.qualified_name}...\"",
+			"stop": "f\"Stopping {self.qualified_name}...\""
+		}
+	}
+}

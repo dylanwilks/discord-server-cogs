@@ -5,7 +5,8 @@ import discord
 from enum import IntFlag
 from typing import Callable
 from discord.ext import commands
-from orderedcog import OrderedCog
+from lib.orderedcog import OrderedCog
+from lib.config import Config
 
 
 class ServerCog(OrderedCog):
@@ -22,23 +23,19 @@ class ServerCog(OrderedCog):
         except AttributeError as e:
             raise NotImplementedError(f"No state {e} detected")
 
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open(
-                "/root/discord-bot/db/scripts/create_servers.sql",
-                "r",
-            ) as sql_create_server,
-            open(
-                "/root/discord-bot/db/scripts/insert_server.sql",
-                "r",
-            ) as sql_insert_server,
+            open(f"{sql_dir}/create_servers.sql", "r") 
+                as sql_create_server,
+            open(f"{sql_dir}/insert_server.sql", "r") 
+                as sql_insert_server,
         ):
             create_servers_table = sql_create_server.read()
             insert_server = sql_insert_server.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         try:
@@ -56,16 +53,16 @@ class ServerCog(OrderedCog):
         db.close()
 
     async def _update_state(self, state: 'State') -> None:
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/update_server_state.sql", "r")
+            open(f"{sql_dir}/update_server_state.sql", "r")
                 as sql_update_server_state,
         ):
             update_server = sql_update_server_state.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(
@@ -76,16 +73,16 @@ class ServerCog(OrderedCog):
         db.close()
 
     async def get_state(self) -> 'State':
+        config = Config.from_json(os.environ["BOT_CONFIG"])
+        sql_dir = config.dir.sql
         with (
-            open("/root/discord-bot/db/scripts/select_server_state.sql", "r")
+            open(f"{sql_dir}/select_server_state.sql", "r")
                 as sql_select_server_state,
         ):
             get_state = sql_select_server_state.read()
 
-        db = sqlite3.connect(
-            "/root/discord-bot/db/alpine-bot.db",
-            check_same_thread=False
-        )
+        db_path = os.environ["BOT_DB"]
+        db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
         cursor = db.cursor()
         cursor.execute(get_state, (self.qualified_name,))

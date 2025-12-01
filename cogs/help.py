@@ -1,8 +1,10 @@
+import os
 import sys
 import sqlite3
 import discord
 from typing import Mapping, Optional, Any, List, Sequence
 from discord.ext import commands
+from lib.config import Config
 
 
 class Help(commands.DefaultHelpCommand):
@@ -36,12 +38,7 @@ class Help(commands.DefaultHelpCommand):
     ) -> None:
         if (await group.can_run(self.context)):
             self.add_command_formatting(group)
-            # filtered_commands = await self.filter_commands(
-            #        group.commands,
-            #        sort=True
-            #        )
             self.add_indented_commands(
-                # filtered_commands,
                 group.commands,
                 heading=self.commands_heading
             )
@@ -71,23 +68,19 @@ class HelpCog(commands.Cog):
         bot.help_command = self._help_command
 
         async def predicate(ctx: commands.Context) -> bool:
-            db = sqlite3.connect(
-                "/root/discord-bot/db/alpine-bot.db",
-                check_same_thread=False
-            )
+            config = Config.from_json(os.environ["BOT_CONFIG"])
+            sql_dir = config.dir.sql
+            db_path = os.environ["BOT_DB"]
+            db = sqlite3.connect(db_path, check_same_thread=False)
             db.execute("PRAGMA FOREIGN_KEYS = ON")
             cursor = db.cursor()
             def pull_singleton(x): return x[0]
             if isinstance(ctx.channel, discord.channel.DMChannel):
                 with (
-                    open(
-                        "/root/discord-bot/db/scripts/select_users_table.sql",
-                        "r"
-                    ) as sql_select_users_table,
-                    open(
-                        "/root/discord-bot/db/scripts/select_admins_table.sql",
-                        "r"
-                    ) as sql_select_admins_table,
+                    open(f"{sql_dir}/select_users_table.sql", "r") 
+                        as sql_select_users_table,
+                    open(f"{sql_dir}/select_admins_table.sql", "r") 
+                        as sql_select_admins_table,
                 ):
                     get_users = sql_select_users_table.read()
                     get_admins = sql_select_admins_table.read()
@@ -102,11 +95,8 @@ class HelpCog(commands.Cog):
                 return ((ctx.author.id in users) or (ctx.author.id in admins))
             else:
                 with (
-                    open(
-                        ("/root/discord-bot/db/scripts/"
-                         "select_channels_table.sql"),
-                        "r"
-                    ) as sql_select_channels_table,
+                    open(f"{sql_dir}/select_channels_table.sql", "r") 
+                        as sql_select_channels_table,
                 ):
                     get_channels = sql_select_channels_table.read()
 
