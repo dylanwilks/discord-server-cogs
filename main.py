@@ -9,7 +9,7 @@ import typing
 import traceback
 import sqlite3
 import dotenv
-from typing import Any, Tuple, Mapping
+from typing import Any, Tuple, Mapping, Dict
 from datetime import datetime
 from discord.ext import commands, tasks
 from lib.config import Config
@@ -36,7 +36,7 @@ class AlpineBot(commands.Bot):
             self,
             ext_dir: str,
             *args: Tuple[Any, ...],
-            **kwargs: Mapping[str, Any]
+            **kwargs: Dict[str, Any]
     ) -> None:
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(self.__class__.__name__)
