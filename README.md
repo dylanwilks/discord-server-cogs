@@ -20,15 +20,15 @@ fetch users and channels respectively that have access to its commands, along wi
 which function similarly but more finely.
 
 Note that if a channel is granted access to some commands, a webhook to that channel will be generated. This will also generate a text file containing the URL of the webhook. The path
-to where this text file should be stored can be changed in the class definition under `async def create_webhook(self, channel)`. Likewise, generating a webhook can be disabled altogether 
-by removing `await self.create_webhooks()` under `async def cog_load(self)`.
+to where this text file should be stored can be changed in the config file.
 
 ### OrderedCog
 Extends `BaseCog` by allowing permission levels to be set for each command. A user/channel with permission level $n$ will be able to call every command in an instance of this class that
 requires permission level $n$ or less, inducing an order/hierarchy on the commands (hence the name 'ordered', stemming from totally ordered posets). A static method
-`assert_perms(user_perm: int, channel_perm: int)` is provided for use as a decorator to accomplish this, as demonstated below.
+`assert_perms(user_perm: int, channel_perm: int)` is provided for use as a decorator to accomplish this, demonstated below.
 
 ```python
+from lib.orderedcog import OrderedCog
 ...
 @OrderedCog.assert_perms(user_perm=0, channel_perm=0)
 async def command(
@@ -45,6 +45,7 @@ This does not introduce a new sort of permission required by users/channels but 
 The state tracked by an instance of this class can be updated using `_update_state(self, state: 'State')` and fetched with `get_state(self)`. To assert a certain state
 for a command to be used, use the static method `assert_state(state: 'State')`:
 ```python
+from lib.servercog import ServerCog
 ...
 @ServerCog.assert_state(state=State.ACTIVE)
 async def command(
@@ -53,6 +54,7 @@ async def command(
 ) -> None:
 ...
 ```
+There are some example cogs that use this class in [`cogs/servers/`](https://github.com/dylanwilks/discord-server-cogs/tree/main/cogs/servers) that I use personally.
 
 ## Managing Permissions
 Permissions are controlled using `sqlite`. If the aforementioned `commands.Cog` subclasses are used, they will generate their respective
@@ -74,3 +76,30 @@ and update it accordingly if necessary. You can thus use `subprocess` to also co
 seen [here](https://github.com/dylanwilks/discord-server-cogs/blob/main/cogs/servers/satisfactory-server.py).
 
 <img width="1091" height="201" alt="image" src="https://github.com/user-attachments/assets/48e6906c-dcc0-4e0d-a4e1-aacbae751389" />
+
+## Config
+Settings, configurations, and some constants are stored in `.env` and JSON files. Values in `.env` are intended for initializing the bot, while values in 
+JSON files are settings that can be changed during runtime.
+
+### Environment Variables
+| Parameter             |  Default   | Function                                                      |
+|-----------------------|:----------:|---------------------------------------------------------------|
+| `BOT_TOKEN`           | `REQUIRED` | Token of the bot                                              |
+| `BOT_NAME`            |    `""`    | If empty then no name change is performed                     |
+| `BOT_ICON`            |    `""`    | If empty then no icon change is performed                     |
+| `BOT_DB`              | `REQUIRED` | Path for the `.db` file                                       |
+| `BOT_PREFIX`          | `REQUIRED` | Set the prefix for your commands                              |
+| `BOT_WATCHER_SECONDS` |     `1`    | Number of seconds to wait for updates to .py files in `cogs/` |
+| `BOT_NAME_MINUTES`    |    `10`    | Number of minutes to wait for name update                     |
+| `BOT_CONSTANTS`       | `REQUIRED` | Path for the constants JSON file                              |
+| `BOT_CONFIG`          | `REQUIRED` | Path for the config JSON file                                 |
+| `BOG_COGS`            | `REQUIRED` | Path for the cogs JSON file                                   |
+
+You may add extra fields to the JSON files. A class `Config` is provided to aid in reading JSON files, and may be used like so:
+```python
+from lib.config import Config
+...
+constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+await ctx.send(eval(constants.messages.servers.no_subcommand))
+...
+```
