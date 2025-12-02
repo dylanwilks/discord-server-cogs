@@ -1,5 +1,5 @@
 import json
-import pathlib 
+import pathlib
 from collections import UserDict
 from typing import Dict, Union, Any, Self
 
@@ -12,14 +12,14 @@ class Config(UserDict[str, Any]):
         val = self.data[key]
         if (type(val) is dict):
             self.data[key] = Config(val)
-            
+
         return self.data[key]
 
     def __getattr__(self, attr: str) -> Union[Self, Any]:
         val = self.get(attr)
         if (type(val) is dict):
             self.data[attr] = Config(val)
-            
+
         return self.data[attr]
 
     def copy(self) -> Self:

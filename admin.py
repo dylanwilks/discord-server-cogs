@@ -10,6 +10,7 @@ from lib.config import Config
 
 dotenv.load_dotenv()
 
+
 async def admin(user_id: int):
     config = Config.from_json(os.environ["BOT_CONFIG"])
     sql_dir = config.dir.sql

@@ -17,25 +17,25 @@ class BaseCog(commands.Cog):
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         with (
-            open(f"{sql_dir}/create_users.sql", "r") 
+            open(f"{sql_dir}/create_users.sql", "r")
                 as sql_create_users,
-            open(f"{sql_dir}/create_channels.sql", "r") 
+            open(f"{sql_dir}/create_channels.sql", "r")
                 as sql_create_channels,
-            open(f"{sql_dir}/create_commands.sql", "r") 
+            open(f"{sql_dir}/create_commands.sql", "r")
                 as sql_create_commands,
-            open(f"{sql_dir}/create_user_commands.sql", "r") 
+            open(f"{sql_dir}/create_user_commands.sql", "r")
                 as sql_create_user_commands,
-            open(f"{sql_dir}/create_channel_commands.sql", "r") 
+            open(f"{sql_dir}/create_channel_commands.sql", "r")
                 as sql_create_channel_commands,
-            open(f"{sql_dir}/create_cogs.sql", "r") 
+            open(f"{sql_dir}/create_cogs.sql", "r")
                 as sql_create_cogs,
-            open(f"{sql_dir}/create_user_cogs.sql", "r") 
+            open(f"{sql_dir}/create_user_cogs.sql", "r")
                 as sql_create_user_cogs,
-            open(f"{sql_dir}/create_channel_cogs.sql", "r") 
+            open(f"{sql_dir}/create_channel_cogs.sql", "r")
                 as sql_create_channel_cogs,
-            open(f"{sql_dir}/create_admins.sql", "r") 
+            open(f"{sql_dir}/create_admins.sql", "r")
                 as sql_create_admins,
-            open(f"{sql_dir}/insert_cog.sql", "r") 
+            open(f"{sql_dir}/insert_cog.sql", "r")
                 as sql_insert_cog,
         ):
             create_users_table = sql_create_users.read()
@@ -160,7 +160,7 @@ class BaseCog(commands.Cog):
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         with (
-            open(f"{sql_dir}/select_command_channels.sql", "r") 
+            open(f"{sql_dir}/select_command_channels.sql", "r")
                 as sql_select_command_channels,
         ):
             fetch_channels = sql_select_command_channels.read()
@@ -217,13 +217,13 @@ class BaseCog(commands.Cog):
         if isinstance(ctx.channel, discord.channel.DMChannel):
             users = await self.get_command_users(ctx.command.qualified_name)
             admins = await self.get_admins()
-            return (config.settings.enable_user_commands and 
+            return (config.settings.enable_user_commands and
                     ((ctx.author.id in users) or (ctx.author.id in admins)))
         else:
             channels = (
                 await self.get_command_channels(ctx.command.qualified_name)
             )
-            return (config.settings.enable_channel_commands and 
+            return (config.settings.enable_channel_commands and
                     (ctx.channel.id in channels))
 
     async def cog_command_error(
@@ -242,7 +242,7 @@ class BaseCog(commands.Cog):
                 await ctx.send(f"Miscellaneous error. Please check logs.")
                 config = Config.from_json(os.environ["BOT_CONFIG"])
                 errors_log = config.logs.errors
-                log = ('[' + str(datetime.now()) + ']' + " " + 
+                log = ('[' + str(datetime.now()) + ']' + " " +
                        traceback.format_exc())
                 with open(errors_log, "a") as file:
                     print(log, file=file)

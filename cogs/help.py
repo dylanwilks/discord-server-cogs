@@ -77,9 +77,9 @@ class HelpCog(commands.Cog):
             def pull_singleton(x): return x[0]
             if isinstance(ctx.channel, discord.channel.DMChannel):
                 with (
-                    open(f"{sql_dir}/select_users_table.sql", "r") 
+                    open(f"{sql_dir}/select_users_table.sql", "r")
                         as sql_select_users_table,
-                    open(f"{sql_dir}/select_admins_table.sql", "r") 
+                    open(f"{sql_dir}/select_admins_table.sql", "r")
                         as sql_select_admins_table,
                 ):
                     get_users = sql_select_users_table.read()
@@ -95,7 +95,7 @@ class HelpCog(commands.Cog):
                 return ((ctx.author.id in users) or (ctx.author.id in admins))
             else:
                 with (
-                    open(f"{sql_dir}/select_channels_table.sql", "r") 
+                    open(f"{sql_dir}/select_channels_table.sql", "r")
                         as sql_select_channels_table,
                 ):
                     get_channels = sql_select_channels_table.read()

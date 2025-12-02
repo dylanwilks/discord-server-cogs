@@ -53,7 +53,7 @@ class AlpineBot(commands.Bot):
                 print(f"Loaded extension {file}")
             except commands.ExtensionError as e:
                 print(f"Failed to load extension {file}: {e}")
-                log = ('[' + str(datetime.now()) + ']' + " " + 
+                log = ('[' + str(datetime.now()) + ']' + " " +
                        traceback.format_exc())
                 with open(config.logs.errors, "a") as file:
                     print(log, file=file)
@@ -96,7 +96,7 @@ class AlpineBot(commands.Bot):
         bot_name = os.getenv("BOT_NAME", "")
         if (bot_name != "" and self.user.name != bot_name):
             await self.user.edit(username=bot_name)
-        
+
         bot_icon = os.getenv("BOT_ICON", "")
         if (bot_icon != ""):
             with open(bot_icon, 'rb') as image:
@@ -113,7 +113,7 @@ class AlpineBot(commands.Bot):
         ):
             get_users_table = sql_select_users_table.read()
             get_channels_table = sql_select_channels_table.read()
-        
+
         db_path = os.environ["BOT_DB"]
         db = sqlite3.connect(db_path, check_same_thread=False)
         db.execute("PRAGMA FOREIGN_KEYS = ON")
@@ -159,7 +159,10 @@ class AlpineBot(commands.Bot):
 
 
 command_prefix = os.environ["BOT_PREFIX"]
-bot = AlpineBot(config.dir.cogs, command_prefix=command_prefix, intents=intents)
+bot = AlpineBot(
+    config.dir.cogs,
+    command_prefix=command_prefix,
+    intents=intents)
 bot_token = os.environ["BOT_TOKEN"]
 bot.run(
     bot_token,

@@ -16,9 +16,9 @@ class OrderedCog(BaseCog):
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         with (
-            open(f"{sql_dir}/create_user_perms.sql", "r") 
+            open(f"{sql_dir}/create_user_perms.sql", "r")
                 as sql_create_user_perms,
-            open(f"{sql_dir}/create_channel_perms.sql", "r") 
+            open(f"{sql_dir}/create_channel_perms.sql", "r")
                 as sql_create_channel_perms,
         ):
             create_user_perms_table = sql_create_user_perms.read()

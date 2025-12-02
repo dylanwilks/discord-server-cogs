@@ -58,7 +58,7 @@ class SatisfactoryServer(
         name="start",
         brief=f"Starts {SERVER_NAME}.",
         help=f"""
-            Attempts to start the Satisfactory server {SERVER_NAME}. 
+            Attempts to start the Satisfactory server {SERVER_NAME}.
             """
     )
     @ServerCog.assert_perms(user_perm=0, channel_perm=0)
@@ -67,7 +67,8 @@ class SatisfactoryServer(
     )
     @state_cooldown
     async def sf_start(self, ctx: commands.Context) -> None:
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         host_server = cog_config.host_server
         state = await super().get_state()
@@ -101,7 +102,8 @@ class SatisfactoryServer(
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(eval(constants.messages.servers.stop))
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         host_server = cog_config.host_server
         await asyncio.create_subprocess_exec(
@@ -115,7 +117,8 @@ class SatisfactoryServer(
     @tasks.loop(seconds=CHECK_STATE_TIME)
     async def check_state(self) -> None:
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         host_server = cog_config.host_server
         host_state = await asyncio.create_subprocess_exec(

@@ -76,7 +76,7 @@ class OrderedCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_channel_perms_table.sql", "r") 
+            open(f"{sql_dir}/select_channel_perms_table.sql", "r")
                 as sql_select_channel_perms_table,
         ):
             get_channel_perms_records = sql_select_channel_perms_table.read()
@@ -129,7 +129,7 @@ class OrderedCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_cog_user_perm_records.sql", "r") 
+            open(f"{sql_dir}/select_cog_user_perm_records.sql", "r")
                 as sql_select_cog_user_perm_records,
         ):
             get_cog_users = sql_select_cog_user_perm_records.read()
@@ -183,7 +183,7 @@ class OrderedCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_cog_channel_perm_records.sql", "r") 
+            open(f"{sql_dir}/select_cog_channel_perm_records.sql", "r")
                 as sql_select_cog_channel_perm_records,
         ):
             get_cog_channels = sql_select_cog_channel_perm_records.read()

@@ -248,7 +248,7 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_channel_cogs_table.sql", "r") 
+            open(f"{sql_dir}/select_channel_cogs_table.sql", "r")
                 as sql_select_channel_cogs_table,
         ):
             get_channel_cogs_records = sql_select_channel_cogs_table.read()
@@ -291,7 +291,7 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_user_commands_table.sql", "r") 
+            open(f"{sql_dir}/select_user_commands_table.sql", "r")
                 as sql_select_user_commands_table,
         ):
             get_user_commands_records = sql_select_user_commands_table.read()
@@ -334,7 +334,7 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_channel_commands_table.sql", "r") 
+            open(f"{sql_dir}/select_channel_commands_table.sql", "r")
                 as sql_select_channel_commands_table,
         ):
             get_channel_commands_records = (
@@ -385,7 +385,7 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_command_user_records.sql", "r") 
+            open(f"{sql_dir}/select_command_user_records.sql", "r")
                 as sql_select_command_user_records,
         ):
             get_command_users = sql_select_command_user_records.read()
@@ -434,7 +434,7 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_command_channel_records.sql", "r") 
+            open(f"{sql_dir}/select_command_channel_records.sql", "r")
                 as sql_select_command_channel_records,
         ):
             get_command_channels = sql_select_command_channel_records.read()
@@ -888,11 +888,11 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_user_commands_like.sql", "r") 
+            open(f"{sql_dir}/select_user_commands_like.sql", "r")
                 as sql_select_user_commands_like,
-            open(f"{sql_dir}/delete_orphan_users.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_users.sql", "r")
                 as sql_delete_orphan_users,
-            open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r")
                 as sql_delete_orphan_user_cogs,
             open(f"{sql_dir}/delete_user_command.sql", "r")
                 as sql_delete_user_command,
@@ -953,15 +953,15 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/select_channel_commands_like.sql", "r") 
+            open(f"{sql_dir}/select_channel_commands_like.sql", "r")
                 as sql_select_channel_commands_like,
-            open(f"{sql_dir}/delete_channel_command.sql", "r") 
+            open(f"{sql_dir}/delete_channel_command.sql", "r")
                 as sql_delete_channel_command,
-            open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r")
                 as sql_delete_orphan_channel_cogs,
-            open(f"{sql_dir}/select_orphan_channels.sql", "r") 
+            open(f"{sql_dir}/select_orphan_channels.sql", "r")
                 as sql_select_orphan_channels,
-            open(f"{sql_dir}/delete_orphan_channels.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_channels.sql", "r")
                 as sql_delete_orphan_channels,
         ):
             select_commands_like = sql_select_channel_commands_like.read()
@@ -1030,11 +1030,11 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/delete_user_cog.sql", "r") 
+            open(f"{sql_dir}/delete_user_cog.sql", "r")
                 as sql_delete_user_cog,
-            open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r")
                 as sql_delete_orphan_user_cogs,
-            open(f"{sql_dir}/delete_orphan_users.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_users.sql", "r")
                 as sql_delete_orphan_users,
         ):
             delete_user_cog = sql_delete_user_cog.read()
@@ -1078,13 +1078,13 @@ class BaseCogDatabase(
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/delete_channel_cog.sql", "r") 
+            open(f"{sql_dir}/delete_channel_cog.sql", "r")
                 as sql_delete_channel_cog,
-            open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r")
                 as sql_delete_orphan_channel_cogs,
-            open(f"{sql_dir}/select_orphan_channels.sql", "r") 
+            open(f"{sql_dir}/select_orphan_channels.sql", "r")
                 as sql_select_orphan_channels,
-            open(f"{sql_dir}/delete_orphan_channels.sql", "r") 
+            open(f"{sql_dir}/delete_orphan_channels.sql", "r")
                 as sql_delete_orphan_channels,
         ):
             delete_channel_cog = sql_delete_channel_cog.read()

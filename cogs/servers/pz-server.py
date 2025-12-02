@@ -67,7 +67,8 @@ class ProjectZomboidServer(
     )
     @state_cooldown
     async def pz_start(self, ctx: commands.Context) -> None:
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         host_server = cog_config.host_server
         state = await super().get_state()
@@ -90,7 +91,7 @@ class ProjectZomboidServer(
         name="stop",
         brief="Stops the Project Zomboid server.",
         help=f"""
-            Stops the Project Zomboid server {SERVER_NAME}. This will be 
+            Stops the Project Zomboid server {SERVER_NAME}. This will be
             necessary if mods are outdated.
             """
     )
@@ -101,7 +102,8 @@ class ProjectZomboidServer(
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(eval(constants.messages.servers.stop))
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         host_server = cog_config.host_server
         await asyncio.create_subprocess_exec(
@@ -123,7 +125,8 @@ class ProjectZomboidServer(
     @ServerCog.assert_state(state=State.ACTIVE)
     async def pz_players(self, ctx: commands.Context) -> None:
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         get_players = await asyncio.create_subprocess_exec(
             f"{scripts_dir}/rcon.sh",
@@ -140,7 +143,8 @@ class ProjectZomboidServer(
     @tasks.loop(seconds=CHECK_STATE_TIME)
     async def check_state(self) -> None:
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         host_server = cog_config.host_server
         host_state1 = await asyncio.create_subprocess_exec(
@@ -165,7 +169,7 @@ class ProjectZomboidServer(
         await host_state2.wait()
         state = await super().get_state()
         if ((state & (self.State.INACTIVE | self.State.HOST_INACTIVE)) and
-                (not (host_state1.returncode | server_state.returncode | 
+                (not (host_state1.returncode | server_state.returncode |
                       host_state2.returncode))):
             constants = Config.from_json(os.environ["BOT_CONSTANTS"])
             response = eval(constants.messages.servers.response)

@@ -79,7 +79,8 @@ class AltarServer(
             ctx: commands.Context
     ) -> None:
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        cog_config = Config.from_json(os.environ["BOT_COGS"]).servers[SERVER_NAME]
+        cog_config = Config.from_json(
+            os.environ["BOT_COGS"]).servers[SERVER_NAME]
         max_time = cog_config.max_start_time
         check_time = cog_config.check_start_time
         scripts_dir = config.dir.scripts

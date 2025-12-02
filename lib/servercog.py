@@ -26,9 +26,9 @@ class ServerCog(OrderedCog):
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         with (
-            open(f"{sql_dir}/create_servers.sql", "r") 
+            open(f"{sql_dir}/create_servers.sql", "r")
                 as sql_create_server,
-            open(f"{sql_dir}/insert_server.sql", "r") 
+            open(f"{sql_dir}/insert_server.sql", "r")
                 as sql_insert_server,
         ):
             create_servers_table = sql_create_server.read()
@@ -93,7 +93,7 @@ class ServerCog(OrderedCog):
     class ServerError(commands.CommandError):
         def __init__(self, message: str, server: str) -> None:
             self.message = message
-            self.server = server 
+            self.server = server
             super().__init__(self.message)
 
     class StateError(commands.CommandError):
