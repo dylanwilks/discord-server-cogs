@@ -1,9 +1,12 @@
 import os
 import subprocess
 import discord
+from typing import Final
 from discord.ext import tasks, commands
 from lib.basecog import BaseCog
 from lib.config import Config
+
+GROUP_COOLDOWN: Final[float] = 5.0
 
 
 class BotControls(
@@ -21,7 +24,7 @@ class BotControls(
             and extensions.
             """
     )
-    @commands.cooldown(1, 5, commands.BucketType.default)
+    @commands.cooldown(1, GROUP_COOLDOWN, commands.BucketType.default)
     async def control_group(self, ctx: commands.Context) -> None:
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(eval(constants.messages.servers.no_subcommand))
