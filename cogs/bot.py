@@ -43,14 +43,9 @@ class BotControls(
                 description="Name of extension to load"
             )
     ) -> None:
-        try:
-            await self.bot.load_extension(extension_name)
-            print(f"Loaded extension {extension_name}")
-            await ctx.send(f"Loaded extension {extension_name}.")
-        except commands.ExtensionError as e:
-            print(f"Failed to load extension {extension_name}: {e}")
-            await ctx.send(f"Failed to load extension {extension_name}. "
-                           f"Please check logs for error info.")
+        await self.bot.load_extension(extension_name)
+        print(f"Loaded extension {extension_name}")
+        await ctx.send(f"Loaded extension {extension_name}.")
 
     @control_group.command(
         name="unload-extension",
@@ -66,14 +61,9 @@ class BotControls(
                 description="Name of extension to unload"
             )
     ) -> None:
-        try:
-            await self.bot.unload_extension(extension_name)
-            print(f"Unloaded extension {extension_name}")
-            await ctx.send(f"Unloaded extension {extension_name}.")
-        except commands.ExtensionError as e:
-            print(f"Failed to unload extension {extension_name}: {e}")
-            await ctx.send(f"Failed to unload extension {extension_name}. "
-                           f"Please check logs for error info.")
+        await self.bot.unload_extension(extension_name)
+        print(f"Unloaded extension {extension_name}")
+        await ctx.send(f"Unloaded extension {extension_name}.")
 
     @control_group.command(
         name="reload-extension",
@@ -89,14 +79,9 @@ class BotControls(
                 description="Name of extension to reload"
             )
     ) -> None:
-        try:
-            await self.bot.reload_extension(extension_name)
-            print(f"Reloaded extension {extension_name}")
-            await ctx.send(f"Reloaded extension {extension_name}.")
-        except commands.ExtensionError as e:
-            print(f"Failed to reload extension {extension_name}: {e}")
-            await ctx.send(f"Failed to reload extension {extension_name}. "
-                           f"Please check logs for error info.")
+        await self.bot.reload_extension(extension_name)
+        print(f"Reloaded extension {extension_name}")
+        await ctx.send(f"Reloaded extension {extension_name}.")
 
     async def cog_load(self) -> None:
         self.register_commands()
