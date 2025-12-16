@@ -39,11 +39,14 @@ class OrderedCogDatabase(
             get_user_perms_records = sql_select_user_perms_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_user_perms_records)
-        user_perms_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_user_perms_records)
+            user_perms_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in user_perms_records:
@@ -82,11 +85,14 @@ class OrderedCogDatabase(
             get_channel_perms_records = sql_select_channel_perms_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_channel_perms_records)
-        channel_perms_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_channel_perms_records)
+            channel_perms_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in channel_perms_records:
@@ -135,11 +141,14 @@ class OrderedCogDatabase(
             get_cog_users = sql_select_cog_user_perm_records.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_cog_users, (cog_name,))
-        cog_user_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_cog_users, (cog_name,))
+            cog_user_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in cog_user_records:
@@ -189,11 +198,14 @@ class OrderedCogDatabase(
             get_cog_channels = sql_select_cog_channel_perm_records.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_cog_channels, (cog_name,))
-        cog_channel_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_cog_channels, (cog_name,))
+            cog_channel_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in cog_channel_records:
@@ -262,17 +274,20 @@ class OrderedCogDatabase(
             set_user_permission = sql_insert_user_perm.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(add_user, (user_id,))
-        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
-        if (cursor.rowcount):
-            user_dm = await user.create_dm()
-            await user_dm.send(eval(constants.messages.startup))
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(add_user, (user_id,))
+            constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+            if (cursor.rowcount):
+                user_dm = await user.create_dm()
+                await user_dm.send(eval(constants.messages.startup))
 
-        cursor.execute(set_user_permission, (user_id, cog_name, permission))
-        db.commit()
-        db.close()
+            cursor.execute(set_user_permission, (user_id, cog_name, permission))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @commands.command(
@@ -328,18 +343,21 @@ class OrderedCogDatabase(
             set_channel_permission = sql_insert_channel_perm.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(add_channel, (channel_id,))
-        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
-        if (cursor.rowcount):
-            self.cog.create_webhook(channel)
-            await channel.send(eval(constants.messages.startup))
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(add_channel, (channel_id,))
+            constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+            if (cursor.rowcount):
+                self.cog.create_webhook(channel)
+                await channel.send(eval(constants.messages.startup))
 
-        cursor.execute(set_channel_permission,
-                       (channel_id, cog_name, permission))
-        db.commit()
-        db.close()
+            cursor.execute(set_channel_permission,
+                           (channel_id, cog_name, permission))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @commands.command(
@@ -373,11 +391,14 @@ class OrderedCogDatabase(
             delete_user_cog_perm = sql_delete_user_cog_perm.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_user_cog_perm, (user_id, cog_name))
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_user_cog_perm, (user_id, cog_name))
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(constants.messages.db_update)
 
@@ -413,11 +434,14 @@ class OrderedCogDatabase(
             delete_channel_cog_perm = sql_delete_channel_cog_perm.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_channel_cog_perm, (channel_id, cog_name))
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_channel_cog_perm, (channel_id, cog_name))
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(constants.messages.db_update)
 

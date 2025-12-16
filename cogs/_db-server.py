@@ -36,11 +36,14 @@ class ServerCogDatabase(
             get_server_records = sql_select_servers_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_server_records)
-        server_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_server_records)
+            server_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in server_records:
@@ -89,11 +92,14 @@ class ServerCogDatabase(
             delete_server_record = sql_delete_server.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_server_record, (server_name,))
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_server_record, (server_name,))
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(constants.messages.db_update)
 

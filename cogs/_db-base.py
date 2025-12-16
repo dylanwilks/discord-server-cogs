@@ -51,11 +51,14 @@ class BaseCogDatabase(
             get_user_records = sql_select_users_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_user_records)
-        user_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_user_records)
+            user_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = int(config.settings.message_limit)
         for record in user_records:
@@ -92,11 +95,14 @@ class BaseCogDatabase(
             get_channel_records = sql_select_channels_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_channel_records)
-        channel_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_channel_records)
+            channel_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in channel_records:
@@ -132,11 +138,13 @@ class BaseCogDatabase(
             get_commands_records = sql_select_commands_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_commands_records)
-        commands_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_commands_records)
+            commands_records = cursor.fetchall()
+        finally:
+            db.close()
         message = ""
         message_limit = config.settings.message_limit
         for record in commands_records:
@@ -171,11 +179,14 @@ class BaseCogDatabase(
             get_cogs_records = sql_select_cogs_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_cogs_records)
-        cogs_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_cogs_records)
+            cogs_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in cogs_records:
@@ -211,11 +222,14 @@ class BaseCogDatabase(
             get_user_cogs_records = sql_select_user_cogs_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_user_cogs_records)
-        user_cogs_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_user_cogs_records)
+            user_cogs_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in user_cogs_records:
@@ -254,11 +268,14 @@ class BaseCogDatabase(
             get_channel_cogs_records = sql_select_channel_cogs_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_channel_cogs_records)
-        channel_cogs_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_channel_cogs_records)
+            channel_cogs_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in channel_cogs_records:
@@ -297,11 +314,14 @@ class BaseCogDatabase(
             get_user_commands_records = sql_select_user_commands_table.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_user_commands_records)
-        user_command_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_user_commands_records)
+            user_command_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in user_command_records:
@@ -342,11 +362,14 @@ class BaseCogDatabase(
             )
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_channel_commands_records)
-        channel_command_records = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_channel_commands_records)
+            channel_command_records = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in channel_command_records:
@@ -391,11 +414,14 @@ class BaseCogDatabase(
             get_command_users = sql_select_command_user_records.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_command_users, (command_name,))
-        command_users = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_command_users, (command_name,))
+            command_users = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in command_users:
@@ -440,11 +466,14 @@ class BaseCogDatabase(
             get_command_channels = sql_select_command_channel_records.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(get_command_channels, (command_name,))
-        command_channels = cursor.fetchall()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(get_command_channels, (command_name,))
+            command_channels = cursor.fetchall()
+        finally:
+            db.close()
+
         message = ""
         message_limit = config.settings.message_limit
         for record in command_channels:
@@ -515,17 +544,20 @@ class BaseCogDatabase(
             user_commands.append((user_id, parent.qualified_name, cog_name))
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(add_user, (user_id,))
-        if (cursor.rowcount):
-            user_dm = await user.create_dm()
-            await user_dm.send(eval(constants.messages.startup))
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(add_user, (user_id,))
+            if (cursor.rowcount):
+                user_dm = await user.create_dm()
+                await user_dm.send(eval(constants.messages.startup))
 
-        cursor.executemany(add_user_command, user_commands)
-        cursor.execute(add_cog_user, (user_id, cog_name))
-        db.commit()
-        db.close()
+            cursor.executemany(add_user_command, user_commands)
+            cursor.execute(add_cog_user, (user_id, cog_name))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @db_group.command(
@@ -584,17 +616,20 @@ class BaseCogDatabase(
                 (channel_id, parent.qualified_name, cog_name))
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(add_channel, (channel_id,))
-        if (cursor.rowcount):
-            await self.create_webhook(channel)
-            await channel.send(eval(constants.messages.startup))
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(add_channel, (channel_id,))
+            if (cursor.rowcount):
+                await self.create_webhook(channel)
+                await channel.send(eval(constants.messages.startup))
 
-        cursor.executemany(add_channel_command, channel_commands)
-        cursor.execute(add_cog_channel, (channel_id, cog_name))
-        db.commit()
-        db.close()
+            cursor.executemany(add_channel_command, channel_commands)
+            cursor.execute(add_cog_channel, (channel_id, cog_name))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @db_group.command(
@@ -654,17 +689,20 @@ class BaseCogDatabase(
                     (user_id, parent.qualified_name, cog_name))
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(add_user, (user_id,))
-        if (cursor.rowcount):
-            user_dm = await user.create_dm()
-            await user_dm.send(eval(constants.messages.startup))
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(add_user, (user_id,))
+            if (cursor.rowcount):
+                user_dm = await user.create_dm()
+                await user_dm.send(eval(constants.messages.startup))
 
-        cursor.executemany(add_user_command, user_commands)
-        cursor.execute(add_cog_user, (user_id, cog_name))
-        db.commit()
-        db.close()
+            cursor.executemany(add_user_command, user_commands)
+            cursor.execute(add_cog_user, (user_id, cog_name))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @db_group.command(
@@ -725,17 +763,20 @@ class BaseCogDatabase(
                     (channel_id, parent.qualified_name, cog_name))
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(add_channel, (channel_id,))
-        if (cursor.rowcount):
-            await self.create_webhook(channel)
-            await channel.send(eval(constants.messages.startup))
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(add_channel, (channel_id,))
+            if (cursor.rowcount):
+                await self.create_webhook(channel)
+                await channel.send(eval(constants.messages.startup))
 
-        cursor.executemany(add_channel_command, channel_commands)
-        cursor.execute(add_cog_channel, (channel_id, cog_name))
-        db.commit()
-        db.close()
+            cursor.executemany(add_channel_command, channel_commands)
+            cursor.execute(add_cog_channel, (channel_id, cog_name))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @db_group.command(
@@ -765,11 +806,14 @@ class BaseCogDatabase(
             delete_user = sql_delete_user.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_user, (user_id,))
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_user, (user_id,))
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(constants.messages.db_update)
 
@@ -803,11 +847,14 @@ class BaseCogDatabase(
             delete_channel = sql_delete_channel.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_channel, (channel_id,))
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_channel, (channel_id,))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.update_db)
 
     @db_group.command(
@@ -851,12 +898,15 @@ class BaseCogDatabase(
             delete_command = sql_delete_command.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.executemany(delete_command, command_names)
-        cursor.execute(delete_cog, (cog_name,))
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.executemany(delete_command, command_names)
+            cursor.execute(delete_cog, (cog_name,))
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @db_group.command(
@@ -903,25 +953,31 @@ class BaseCogDatabase(
             delete_orphan_users = sql_delete_orphan_users.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_user_command_records, (user_id, command_name))
-        for parent in command.parents:
-            cursor.execute(select_commands_like,
-                           (f"{parent.qualified_name}%",))
-            command_name_records = cursor.fetchall()
-            if (len(command_name_records) == 1):
-                cursor.execute(
-                    delete_user_command_records,
-                    (user_id, parent.qualified_name)
-                )
-            else:
-                break
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(
+                delete_user_command_records, 
+                (user_id, command_name)
+            )
+            for parent in command.parents:
+                cursor.execute(select_commands_like,
+                               (f"{parent.qualified_name}%",))
+                command_name_records = cursor.fetchall()
+                if (len(command_name_records) == 1):
+                    cursor.execute(
+                        delete_user_command_records,
+                        (user_id, parent.qualified_name)
+                    )
+                else:
+                    break
 
-        cursor.execute(delete_orphan_user_cogs)
-        cursor.execute(delete_orphan_users)
-        db.commit()
-        db.close()
+            cursor.execute(delete_orphan_user_cogs)
+            cursor.execute(delete_orphan_users)
+            db.commit()
+        finally:
+            db.close()
+
         await ctx.send(constants.messages.db_update)
 
     @db_group.command(
@@ -971,31 +1027,34 @@ class BaseCogDatabase(
             delete_orphan_channels = sql_delete_orphan_channels.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(
-            delete_channel_command_records,
-            (channel_id, command_name)
-        )
-        for parent in command.parents:
-            cursor.execute(select_commands_like, (f"{parent.qualified_name}%"))
-            command_name_records = cursor.fetchall()
-            if (len(command_name_records) == 1):
-                cursor.execute(
-                    delete_channel_command_records,
-                    (channel_id, parent.qualified_name)
-                )
-            else:
-                break
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(
+                delete_channel_command_records,
+                (channel_id, command_name)
+            )
+            for parent in command.parents:
+                cursor.execute(select_commands_like, (f"{parent.qualified_name}%"))
+                command_name_records = cursor.fetchall()
+                if (len(command_name_records) == 1):
+                    cursor.execute(
+                        delete_channel_command_records,
+                        (channel_id, parent.qualified_name)
+                    )
+                else:
+                    break
 
-        cursor.execute(delete_orphan_channel_cogs)
-        cursor.execute(get_orphan_channels)
-        channel_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
-        channel_ids = list(map(pull_singleton, channel_records))
-        cursor.execute(delete_orphan_channels)
-        db.commit()
-        db.close()
+            cursor.execute(delete_orphan_channel_cogs)
+            cursor.execute(get_orphan_channels)
+            channel_records = cursor.fetchall()
+            def pull_singleton(x): return x[0]
+            channel_ids = list(map(pull_singleton, channel_records))
+            cursor.execute(delete_orphan_channels)
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         for channel_id in channel_ids:
             channel = await self.bot.fetch_channel(channel_id)
@@ -1042,13 +1101,16 @@ class BaseCogDatabase(
             delete_orphan_users = sql_delete_orphan_users.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_user_cog, (user_id, cog_name))
-        cursor.execute(delete_orphan_user_cogs)
-        cursor.execute(delete_orphan_users)
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_user_cog, (user_id, cog_name))
+            cursor.execute(delete_orphan_user_cogs)
+            cursor.execute(delete_orphan_users)
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(constants.messages.db_update)
 
@@ -1093,17 +1155,20 @@ class BaseCogDatabase(
             delete_orphan_channels = sql_delete_orphan_channels.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_channel_cog, (channel_id, cog_name))
-        cursor.execute(delete_orphan_channel_cogs)
-        cursor.execute(get_orphan_channels)
-        channel_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
-        channel_ids = list(map(pull_singleton, channel_records))
-        cursor.execute(delete_orphan_channels)
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_channel_cog, (channel_id, cog_name))
+            cursor.execute(delete_orphan_channel_cogs)
+            cursor.execute(get_orphan_channels)
+            channel_records = cursor.fetchall()
+            def pull_singleton(x): return x[0]
+            channel_ids = list(map(pull_singleton, channel_records))
+            cursor.execute(delete_orphan_channels)
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         for channel_id in channel_ids:
             channel = await self.bot.fetch_channel(channel_id)
@@ -1148,17 +1213,20 @@ class BaseCogDatabase(
             delete_orphan_channels = sql_delete_orphan_channels.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
-        db.execute("PRAGMA FOREIGN_KEYS = ON")
-        cursor = db.cursor()
-        cursor.execute(delete_command_record, (command_name,))
-        cursor.execute(delete_orphan_users)
-        cursor.execute(get_orphan_channels)
-        channel_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
-        channel_ids = list(map(pull_singleton, channel_records))
-        cursor.execute(delete_orphan_channels)
-        db.commit()
-        db.close()
+        try:
+            db.execute("PRAGMA FOREIGN_KEYS = ON")
+            cursor = db.cursor()
+            cursor.execute(delete_command_record, (command_name,))
+            cursor.execute(delete_orphan_users)
+            cursor.execute(get_orphan_channels)
+            channel_records = cursor.fetchall()
+            def pull_singleton(x): return x[0]
+            channel_ids = list(map(pull_singleton, channel_records))
+            cursor.execute(delete_orphan_channels)
+            db.commit()
+        finally:
+            db.close()
+
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         for channel_id in channel_ids:
             channel = await self.bot.fetch_channel(channel_id)
