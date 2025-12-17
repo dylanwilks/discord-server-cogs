@@ -111,7 +111,12 @@ class OrderedCog(BaseCog):
             if (cog_user_perm is not None):
                 permission = cog_user_perm >= user_perm
             else:
-                permission = cog_channel_perm >= channel_perm
+                try:
+                    permission = cog_channel_perm >= channel_perm
+                except TypeError:
+                    raise OrderedCog.PermissionError(
+                        "Channel permission level not set."
+                    )
 
             if (permission):
                 return True
