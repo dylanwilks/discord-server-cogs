@@ -1035,7 +1035,8 @@ class BaseCogDatabase(
                 (channel_id, command_name)
             )
             for parent in command.parents:
-                cursor.execute(select_commands_like, (f"{parent.qualified_name}%"))
+                cursor.execute(select_commands_like, 
+                               (f"{parent.qualified_name}%",))
                 command_name_records = cursor.fetchall()
                 if (len(command_name_records) == 1):
                     cursor.execute(

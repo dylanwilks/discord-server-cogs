@@ -1,2 +1,2 @@
 DELETE FROM ChannelCommands
-WHERE (UserID = ?) AND (CommandName = ?)
+WHERE (ChannelID = ?) AND (CommandName = ?)
