@@ -37,6 +37,7 @@ async def command(
 ) -> None:
 ...
 ```
+> **Note:** Setting only the permission level for a user or channel is not enough to enable use of the cog's commands. You will still have to permit the user or channel to use those commands.
 
 ### ServerCog
 This does not introduce a new sort of permission required by users/channels but instead keeps track of the state of a server. By default the class asserts that states
