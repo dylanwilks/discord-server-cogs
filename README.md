@@ -87,7 +87,7 @@ JSON files are settings that can be changed during runtime.
 |-----------------------|:----------:|---------------------------------------------------------------|
 | `BOT_TOKEN`           | `REQUIRED` | Token of the bot                                              |
 | `BOT_NAME`            |    `""`    | If empty then no name change is performed                     |
-| `BOT_ICON`            |    `""`    | If empty then no icon change is performed                     |
+| `BOT_ICON`            | `REQUIRED` | Sets the icon of the bot and its webhooks                     |
 | `BOT_DB`              | `REQUIRED` | Path for the `.db` file                                       |
 | `BOT_PREFIX`          | `REQUIRED` | Set the prefix for your commands                              |
 | `BOT_WATCHER_SECONDS` |     `1`    | Number of seconds to wait for updates to .py files in `cogs/` |
