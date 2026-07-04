@@ -87,7 +87,7 @@ JSON files are settings that can be changed during runtime.
 | Parameter             |  Default   | Function                                                      |
 |-----------------------|:----------:|---------------------------------------------------------------|
 | `BOT_TOKEN` | `REQUIRED` | Token of the bot |
-| `BOT_NAME` | `Discord Bot` | If blank then no name change is performed |
+| `BOT_NAME` | `""` | If blank then no name change is performed |
 | `BOT_ICON` | `""` | Sets the icon of the bot and its webhooks if not blank |
 | `BOT_DB` | `~/db/bot.db` | Path for the `.db` file |
 | `BOT_PREFIX` | `!` | Set the prefix for your commands |
