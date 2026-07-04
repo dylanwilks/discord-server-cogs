@@ -136,6 +136,7 @@ class HostServer(
             self.qualified_name,
             remote_user,
             remote_webhooks,
+            remote_scripts,
             '&',
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
