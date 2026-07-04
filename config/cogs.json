@@ -5,6 +5,7 @@
             "check_start_time": 10,
             "remote_user": "discord-server-cogs",
             "remote_webhooks": "~/webhooks/",
+            "remote_scripts": "~/scripts/",
             "broadcast": "192.168.0.255"
 		},
 
@@ -16,6 +17,7 @@
 
 		"pz-server": {
 			"host_server": "host-server",
+            "remote_user": "discord-server-cogs",
 			"container_name1": "project-zomboid-server"
 		},
 

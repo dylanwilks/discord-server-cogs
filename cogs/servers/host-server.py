@@ -130,6 +130,7 @@ class HostServer(
         scripts_dir = config.dir.scripts
         remote_user = cog_config.remote_user
         remote_webhooks = cog_config.remote_webhooks
+        remote_scripts = cog_config.remote_scripts
         await asyncio.create_subprocess_exec(
             f"{scripts_dir}/hibernate.sh",
             self.qualified_name,
