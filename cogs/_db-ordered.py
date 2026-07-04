@@ -112,8 +112,8 @@ class OrderedCogDatabase(
         name="print-cog-user-perms",
         brief="Prints records in UserPerms matching the given cog.",
         help="""
-            Displays records from the UserPerms table with the given cog name as
-            foreign key. Cog provided must be a subclass of OrderedCog.
+            Displays records from the UserPerms table with the given cog name
+            as foreign key. Cog provided must be a subclass of OrderedCog.
             Automatically converts the user ID into the corresponding username.
             """
     )
@@ -168,10 +168,10 @@ class OrderedCogDatabase(
         name="print-cog-channel-perms",
         brief="Prints records in ChannelPerms matching the given cog.",
         help="""
-            Displays records from the ChannelPerms table with the given cog name
-            as foreign key. Cog provided must be a subclass of OrderedCog.
-            Automatically converts the channel ID into the corresponding channel
-            name.
+            Displays records from the ChannelPerms table with the given cog
+            name as foreign key. Cog provided must be a subclass of OrderedCog.
+            Automatically converts the channel ID into the corresponding
+            channel name.
             """
     )
     async def print_cog_channel_perms(
@@ -187,7 +187,9 @@ class OrderedCogDatabase(
             await ctx.send("Invalid cog name.")
             return
 
-        await ctx.send(f"Fetching ChannelPerms records linked to {cog_name}...")
+        await ctx.send(
+            f"Fetching ChannelPerms records linked to {cog_name}..."
+        )
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
@@ -225,11 +227,11 @@ class OrderedCogDatabase(
         name="set-user-perm",
         brief="Sets the permission of a user for a specified cog.",
         help="""
-            Sets the permission of a user for a specified cog that is a subclass of
-            OrderedCog. If the user does not exist in the database, records will be
-            generated, otherwise existing ones will be updated. This does not
-            create records between the user and the commands of the cog, which will
-            have to be done using other commands.
+            Sets the permission of a user for a specified cog that is a
+            subclass of OrderedCog. If the user does not exist in the database,
+            records will be generated, otherwise existing ones will be updated.
+            This does not create records between the user and the commands of
+            the cog, which will have to be done using other commands.
             """
     )
     async def set_user_perm(
@@ -266,9 +268,9 @@ class OrderedCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/insert_user.sql", "r")
-                as sql_insert_user,
+            as sql_insert_user,
             open(f"{sql_dir}/insert_user_perm.sql", "r")
-                as sql_insert_user_perm,
+            as sql_insert_user_perm,
         ):
             add_user = sql_insert_user.read()
             set_user_permission = sql_insert_user_perm.read()
@@ -283,7 +285,8 @@ class OrderedCogDatabase(
                 user_dm = await user.create_dm()
                 await user_dm.send(eval(constants.messages.startup))
 
-            cursor.execute(set_user_permission, (user_id, cog_name, permission))
+            cursor.execute(
+                set_user_permission, (user_id, cog_name, permission))
             db.commit()
         finally:
             db.close()
@@ -294,11 +297,12 @@ class OrderedCogDatabase(
         name="set-channel-perm",
         brief="Sets the permission of a channel for a specified cog.",
         help="""
-            Sets the permission of a channel for a specified cog that is a subclass
-            of OrderedCog. If the channel does not exist in the database, records
-            will be generated, otherwise existing ones will be updated. This does
-            not create records between the channel and the commands of the cog,
-            which will have to be done using other commands.
+            Sets the permission of a channel for a specified cog that is a
+            subclass of OrderedCog. If the channel does not exist in the
+            database, records will be generated, otherwise existing ones will
+            be updated. This does not create records between the channel and
+            the commands of the cog, which will have to be done using other
+            commands.
             """
     )
     async def set_channel_perm(
@@ -335,9 +339,9 @@ class OrderedCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/insert_channel.sql", "r")
-                as sql_insert_channel,
+            as sql_insert_channel,
             open(f"{sql_dir}/insert_channel_perm.sql", "r")
-                as sql_insert_channel_perm,
+            as sql_insert_channel_perm,
         ):
             add_channel = sql_insert_channel.read()
             set_channel_permission = sql_insert_channel_perm.read()
@@ -364,8 +368,8 @@ class OrderedCogDatabase(
         name="remove-user-perm",
         brief="Removes the users permission level.",
         help="""
-            Removes the record of the matching user and cog in the UserPerms table.
-            Cog must be a subclass of OrderedCog.
+            Removes the record of the matching user and cog in the UserPerms
+            table.  Cog must be a subclass of OrderedCog.
             """
     )
     async def remove_user_cog_perm(
@@ -380,7 +384,9 @@ class OrderedCogDatabase(
     ) -> None:
         user = await self.bot.fetch_user(user_id)
         username = user.name
-        await ctx.send(f"Removing record of user {username} and cog {cog_name}...")
+        await ctx.send(
+            f"Removing record of user {username} and cog {cog_name}..."
+        )
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
@@ -406,8 +412,8 @@ class OrderedCogDatabase(
         name="remove-channel-perm",
         brief="Removes the channels permission level.",
         help="""
-            Removes the record of the matching channel and cog in the ChannelPerms
-            table. Cog must be a subclass of OrderedCog.
+            Removes the record of the matching channel and cog in the
+            ChannelPerms table. Cog must be a subclass of OrderedCog.
             """
     )
     async def remove_channel_cog_perm(

@@ -8,15 +8,14 @@ import discord
 import typing
 import traceback
 import sqlite3
-import dotenv
 from typing import Any, Tuple, Mapping, Dict
 from datetime import datetime
 from discord.ext import commands, tasks
 from lib.config import Config
 
-dotenv.load_dotenv()
 config = Config.from_json(os.environ["BOT_CONFIG"])
 constants = Config.from_json(os.environ["BOT_CONSTANTS"])
+os.makedirs(os.path.dirname(config.logs.handler), exist_ok=True)
 handler = logging.FileHandler(
     filename=config.logs.handler,
     encoding='utf-8',
@@ -29,7 +28,7 @@ intents.members = True
 
 
 # Number of features here taken from fallendeity
-class AlpineBot(commands.Bot):
+class DiscordServerCogs(commands.Bot):
     _watcher: asyncio.Task
 
     def __init__(
@@ -55,6 +54,10 @@ class AlpineBot(commands.Bot):
                 print(f"Failed to load extension {file}: {e}")
                 log = ('[' + str(datetime.now()) + ']' + " " +
                        traceback.format_exc())
+                os.makedirs(
+                    os.path.dirname(config.logs.errors),
+                    exist_ok=True
+                )
                 with open(config.logs.errors, "a") as file:
                     print(log, file=file)
 
@@ -107,9 +110,9 @@ class AlpineBot(commands.Bot):
         sql_dir = config.dir.sql
         with (
             open(f"{sql_dir}/select_users_table.sql", "r")
-                as sql_select_users_table,
+            as sql_select_users_table,
             open(f"{sql_dir}/select_channels_table.sql", "r")
-                as sql_select_channels_table,
+            as sql_select_channels_table,
         ):
             get_users_table = sql_select_users_table.read()
             get_channels_table = sql_select_channels_table.read()
@@ -144,6 +147,7 @@ class AlpineBot(commands.Bot):
             log += "#" + ctx.channel.name + "."
 
         print(log)
+        os.makedirs(os.path.dirname(config.logs.commands), exist_ok=True)
         with open(config.logs.commands, "a") as file:
             print(log, file=file)
 
@@ -159,7 +163,7 @@ class AlpineBot(commands.Bot):
 
 
 command_prefix = os.environ["BOT_PREFIX"]
-bot = AlpineBot(
+bot = DiscordServerCogs(
     config.dir.cogs,
     command_prefix=command_prefix,
     intents=intents)

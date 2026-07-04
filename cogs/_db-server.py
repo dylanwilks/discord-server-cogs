@@ -49,7 +49,11 @@ class ServerCogDatabase(
         for record in server_records:
             m_record = list(record)
             server_cog = self.bot.get_cog(record[0])
-            m_record[1] = server_cog.State(record[1]).name
+            if (server_cog is None):
+                m_record[1] = "NULL"
+            else:
+                m_record[1] = server_cog.State(record[1]).name
+
             new_row = str(tuple(m_record)) + '\n'
             if (len(message) + len(new_row) > message_limit):
                 await ctx.send(message)
@@ -63,8 +67,8 @@ class ServerCogDatabase(
         name="delete-server",
         brief="Removes a server.",
         help="""
-            Removes the given server from the database. This will also remove the
-            cog.
+            Removes the given server from the database. This will also remove
+            the cog.
             """
     )
     async def delete_server(
@@ -75,16 +79,14 @@ class ServerCogDatabase(
             )
     ) -> None:
         server_cog = self.bot.get_cog(server_name)
-        if (server_cog is None or
-                not issubclass(type(server_cog), ServerCog)):
-            await ctx.send("Invalid cog name.")
-            return
+        if (server_cog is not None and
+                issubclass(type(server_cog), ServerCog)):
+            await self.bot.remove_cog(server_name)
 
         await ctx.send(f"Removing server {server_name}...")
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
-        await self.bot.remove_cog(server_name)
         with (
             open(f"{sql_dir}/delete_server.sql", "r")
                 as sql_delete_server,

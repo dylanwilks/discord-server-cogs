@@ -527,11 +527,11 @@ class BaseCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/insert_user.sql", "r")
-                as sql_insert_user,
+            as sql_insert_user,
             open(f"{sql_dir}/insert_user_command.sql", "r")
-                as sql_insert_user_command,
+            as sql_insert_user_command,
             open(f"{sql_dir}/insert_user_cog.sql", "r")
-                as sql_insert_user_cog,
+            as sql_insert_user_cog,
         ):
             add_user = sql_insert_user.read()
             add_user_command = sql_insert_user_command.read()
@@ -591,18 +591,18 @@ class BaseCogDatabase(
             await ctx.send(constants.messages.invalid_command)
             return
 
-        await ctx.send(f"Permitting channel {channel.name} "
+        await ctx.send(f"Permitting channel #{channel.name} "
                        f"to use command {command_name}...")
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/insert_channel.sql", "r")
-                as sql_insert_channel,
+            as sql_insert_channel,
             open(f"{sql_dir}/insert_channel_command.sql", "r")
-                as sql_insert_channel_command,
+            as sql_insert_channel_command,
             open(f"{sql_dir}/insert_channel_cog.sql", "r")
-                as sql_insert_channel_cog,
+            as sql_insert_channel_cog,
         ):
             add_channel = sql_insert_channel.read()
             add_channel_command = sql_insert_channel_command.read()
@@ -621,7 +621,7 @@ class BaseCogDatabase(
             cursor = db.cursor()
             cursor.execute(add_channel, (channel_id,))
             if (cursor.rowcount):
-                await self.create_webhook(channel)
+                await self.create_webhook(channel, cog_name)
                 await channel.send(eval(constants.messages.startup))
 
             cursor.executemany(add_channel_command, channel_commands)
@@ -671,11 +671,11 @@ class BaseCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/insert_user.sql", "r")
-                as sql_insert_user,
+            as sql_insert_user,
             open(f"{sql_dir}/insert_user_command.sql", "r")
-                as sql_insert_user_command,
+            as sql_insert_user_command,
             open(f"{sql_dir}/insert_user_cog.sql", "r")
-                as sql_insert_user_cog,
+            as sql_insert_user_cog,
         ):
             add_user = sql_insert_user.read()
             add_user_command = sql_insert_user_command.read()
@@ -710,8 +710,8 @@ class BaseCogDatabase(
         brief="Permits the channel access to all commands in a cog.",
         help="""
             Permits the channel to use all commands in a given cog. Cog must be
-            a subclass of BaseCog. If the channel does not exist in the database,
-            records will be generated.
+            a subclass of BaseCog. If the channel does not exist in the
+            database, records will be generated.
             """
     )
     async def permit_channel_cog(
@@ -737,18 +737,18 @@ class BaseCogDatabase(
             await ctx.send(constants.messages.invalid_cog)
             return
 
-        await ctx.send(f"Permitting channel {channel.name} to use commands in "
-                       f"cog {cog_name}...")
+        await ctx.send(f"Permitting channel #{channel.name} to use commands "
+                       f"in cog {cog_name}...")
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/insert_channel.sql", "r")
-                as sql_insert_channel,
+            as sql_insert_channel,
             open(f"{sql_dir}/insert_channel_command.sql", "r")
-                as sql_insert_channel_command,
+            as sql_insert_channel_command,
             open(f"{sql_dir}/insert_channel_cog.sql", "r")
-                as sql_insert_channel_cog,
+            as sql_insert_channel_cog,
         ):
             add_channel = sql_insert_channel.read()
             add_channel_command = sql_insert_channel_command.read()
@@ -768,7 +768,7 @@ class BaseCogDatabase(
             cursor = db.cursor()
             cursor.execute(add_channel, (channel_id,))
             if (cursor.rowcount):
-                await self.create_webhook(channel)
+                await self.create_webhook(channel, cog_name)
                 await channel.send(eval(constants.messages.startup))
 
             cursor.executemany(add_channel_command, channel_commands)
@@ -875,33 +875,23 @@ class BaseCogDatabase(
     ) -> None:
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         cog = self.bot.get_cog(cog_name)
-        if (cog is None):
-            await ctx.send(constants.messages.invalid_cog)
-            return
+        if (cog is not None):
+            self.bot.remove_cog(cog_name)
 
-        await ctx.send(f"Deleting channel {channel_name} from database...")
-        command_names: List[Tuple[str]]
-        for command in cog.walk_commands():
-            command_names.append((command.qualified_name,))
-
-        self.bot.remove_cog(cog_name)
+        await ctx.send(f"Deleting cog {cog_name} from database...")
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
-            open(f"{sql_dir}/delete_command.sql", "r")
-                as sql_delete_cog,
             open(f"{sql_dir}/delete_cog.sql", "r")
-                as sql_delete_command,
+                as sql_delete_cog,
         ):
             delete_cog = sql_delete_cog.read()
-            delete_command = sql_delete_command.read()
 
         db = sqlite3.connect(db_path, check_same_thread=False)
         try:
             db.execute("PRAGMA FOREIGN_KEYS = ON")
             cursor = db.cursor()
-            cursor.executemany(delete_command, command_names)
             cursor.execute(delete_cog, (cog_name,))
             db.commit()
         finally:
@@ -939,13 +929,13 @@ class BaseCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/select_user_commands_like.sql", "r")
-                as sql_select_user_commands_like,
+            as sql_select_user_commands_like,
             open(f"{sql_dir}/delete_orphan_users.sql", "r")
-                as sql_delete_orphan_users,
+            as sql_delete_orphan_users,
             open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r")
-                as sql_delete_orphan_user_cogs,
+            as sql_delete_orphan_user_cogs,
             open(f"{sql_dir}/delete_user_command.sql", "r")
-                as sql_delete_user_command,
+            as sql_delete_user_command,
         ):
             select_commands_like = sql_select_user_commands_like.read()
             delete_user_command_records = sql_delete_user_command.read()
@@ -957,7 +947,7 @@ class BaseCogDatabase(
             db.execute("PRAGMA FOREIGN_KEYS = ON")
             cursor = db.cursor()
             cursor.execute(
-                delete_user_command_records, 
+                delete_user_command_records,
                 (user_id, command_name)
             )
             for parent in command.parents:
@@ -1010,15 +1000,15 @@ class BaseCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/select_channel_commands_like.sql", "r")
-                as sql_select_channel_commands_like,
+            as sql_select_channel_commands_like,
             open(f"{sql_dir}/delete_channel_command.sql", "r")
-                as sql_delete_channel_command,
+            as sql_delete_channel_command,
             open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r")
-                as sql_delete_orphan_channel_cogs,
+            as sql_delete_orphan_channel_cogs,
             open(f"{sql_dir}/select_orphan_channels.sql", "r")
-                as sql_select_orphan_channels,
+            as sql_select_orphan_channels,
             open(f"{sql_dir}/delete_orphan_channels.sql", "r")
-                as sql_delete_orphan_channels,
+            as sql_delete_orphan_channels,
         ):
             select_commands_like = sql_select_channel_commands_like.read()
             delete_channel_command_records = sql_delete_channel_command.read()
@@ -1035,7 +1025,7 @@ class BaseCogDatabase(
                 (channel_id, command_name)
             )
             for parent in command.parents:
-                cursor.execute(select_commands_like, 
+                cursor.execute(select_commands_like,
                                (f"{parent.qualified_name}%",))
                 command_name_records = cursor.fetchall()
                 if (len(command_name_records) == 1):
@@ -1049,7 +1039,10 @@ class BaseCogDatabase(
             cursor.execute(delete_orphan_channel_cogs)
             cursor.execute(get_orphan_channels)
             channel_records = cursor.fetchall()
-            def pull_singleton(x): return x[0]
+
+            def pull_singleton(x):
+                return x[0]
+
             channel_ids = list(map(pull_singleton, channel_records))
             cursor.execute(delete_orphan_channels)
             db.commit()
@@ -1091,11 +1084,11 @@ class BaseCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/delete_user_cog.sql", "r")
-                as sql_delete_user_cog,
+            as sql_delete_user_cog,
             open(f"{sql_dir}/delete_orphan_user_cogs.sql", "r")
-                as sql_delete_orphan_user_cogs,
+            as sql_delete_orphan_user_cogs,
             open(f"{sql_dir}/delete_orphan_users.sql", "r")
-                as sql_delete_orphan_users,
+            as sql_delete_orphan_users,
         ):
             delete_user_cog = sql_delete_user_cog.read()
             delete_orphan_user_cogs = sql_delete_orphan_user_cogs.read()
@@ -1119,8 +1112,8 @@ class BaseCogDatabase(
         name="delete-channel-cog",
         brief="Removes channel access to all commands of a given cog.",
         help="""
-            Removes all records linking the given channel and all the commands of
-            a given cog.
+            Removes all records linking the given channel and all the commands
+            of a given cog.
             """
     )
     async def delete_channel_cog(
@@ -1136,19 +1129,21 @@ class BaseCogDatabase(
         channel = await self.bot.fetch_channel(channel_id)
         channel_name = channel.name
         cog = self.bot.get_cog(cog_name)
-        await ctx.send(f"Deleting channel {channel_name} from cog {cog_name}...")
+        await ctx.send(
+            f"Deleting channel {channel_name} from cog {cog_name}..."
+        )
         config = Config.from_json(os.environ["BOT_CONFIG"])
         sql_dir = config.dir.sql
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/delete_channel_cog.sql", "r")
-                as sql_delete_channel_cog,
+            as sql_delete_channel_cog,
             open(f"{sql_dir}/delete_orphan_channel_cogs.sql", "r")
-                as sql_delete_orphan_channel_cogs,
+            as sql_delete_orphan_channel_cogs,
             open(f"{sql_dir}/select_orphan_channels.sql", "r")
-                as sql_select_orphan_channels,
+            as sql_select_orphan_channels,
             open(f"{sql_dir}/delete_orphan_channels.sql", "r")
-                as sql_delete_orphan_channels,
+            as sql_delete_orphan_channels,
         ):
             delete_channel_cog = sql_delete_channel_cog.read()
             delete_orphan_channel_cogs = sql_delete_orphan_channel_cogs.read()
@@ -1163,7 +1158,10 @@ class BaseCogDatabase(
             cursor.execute(delete_orphan_channel_cogs)
             cursor.execute(get_orphan_channels)
             channel_records = cursor.fetchall()
-            def pull_singleton(x): return x[0]
+
+            def pull_singleton(x):
+                return x[0]
+
             channel_ids = list(map(pull_singleton, channel_records))
             cursor.execute(delete_orphan_channels)
             db.commit()
@@ -1200,13 +1198,13 @@ class BaseCogDatabase(
         db_path = os.environ["BOT_DB"]
         with (
             open(f"{sql_dir}/delete_command.sql", "r")
-                as sql_delete_command,
+            as sql_delete_command,
             open(f"{sql_dir}/delete_orphan_users.sql", "r")
-                as sql_delete_orphan_users,
+            as sql_delete_orphan_users,
             open(f"{sql_dir}/select_orphan_channels.sql", "r")
-                as sql_select_orphan_channels,
+            as sql_select_orphan_channels,
             open(f"{sql_dir}/delete_orphan_channels.sql", "r")
-                as sql_delete_orphan_channels,
+            as sql_delete_orphan_channels,
         ):
             delete_command_record = sql_delete_command.read()
             delete_orphan_users = sql_delete_orphan_users.read()
@@ -1221,7 +1219,10 @@ class BaseCogDatabase(
             cursor.execute(delete_orphan_users)
             cursor.execute(get_orphan_channels)
             channel_records = cursor.fetchall()
-            def pull_singleton(x): return x[0]
+
+            def pull_singleton(x):
+                return x[0]
+
             channel_ids = list(map(pull_singleton, channel_records))
             cursor.execute(delete_orphan_channels)
             db.commit()

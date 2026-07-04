@@ -18,25 +18,25 @@ class BaseCog(commands.Cog):
         sql_dir = config.dir.sql
         with (
             open(f"{sql_dir}/create_users.sql", "r")
-                as sql_create_users,
+            as sql_create_users,
             open(f"{sql_dir}/create_channels.sql", "r")
-                as sql_create_channels,
+            as sql_create_channels,
             open(f"{sql_dir}/create_commands.sql", "r")
-                as sql_create_commands,
+            as sql_create_commands,
             open(f"{sql_dir}/create_user_commands.sql", "r")
-                as sql_create_user_commands,
+            as sql_create_user_commands,
             open(f"{sql_dir}/create_channel_commands.sql", "r")
-                as sql_create_channel_commands,
+            as sql_create_channel_commands,
             open(f"{sql_dir}/create_cogs.sql", "r")
-                as sql_create_cogs,
+            as sql_create_cogs,
             open(f"{sql_dir}/create_user_cogs.sql", "r")
-                as sql_create_user_cogs,
+            as sql_create_user_cogs,
             open(f"{sql_dir}/create_channel_cogs.sql", "r")
-                as sql_create_channel_cogs,
+            as sql_create_channel_cogs,
             open(f"{sql_dir}/create_admins.sql", "r")
-                as sql_create_admins,
+            as sql_create_admins,
             open(f"{sql_dir}/insert_cog.sql", "r")
-                as sql_insert_cog,
+            as sql_insert_cog,
         ):
             create_users_table = sql_create_users.read()
             create_channels_table = sql_create_channels.read()
@@ -95,7 +95,10 @@ class BaseCog(commands.Cog):
             raise
 
         user_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
+
+        def pull_singleton(x):
+            return x[0]
+
         users = tuple(map(pull_singleton, user_records))
         db.close()
         return users
@@ -122,7 +125,10 @@ class BaseCog(commands.Cog):
             raise
 
         channel_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
+
+        def pull_singleton(x):
+            return x[0]
+
         channels = tuple(map(pull_singleton, channel_records))
         db.close()
         return channels
@@ -150,7 +156,10 @@ class BaseCog(commands.Cog):
             raise
 
         user_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
+
+        def pull_singleton(x):
+            return x[0]
+
         users = tuple(map(pull_singleton, user_records))
         db.close()
         return users
@@ -178,7 +187,10 @@ class BaseCog(commands.Cog):
             raise
 
         channel_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
+
+        def pull_singleton(x):
+            return x[0]
+
         channels = tuple(map(pull_singleton, channel_records))
         db.close()
         return channels
@@ -206,7 +218,10 @@ class BaseCog(commands.Cog):
             raise
 
         admin_records = cursor.fetchall()
-        def pull_singleton(x): return x[0]
+
+        def pull_singleton(x):
+            return x[0]
+
         admins = tuple(map(pull_singleton, admin_records))
         db.close()
         return admins
@@ -249,7 +264,8 @@ class BaseCog(commands.Cog):
 
     async def create_webhook(
             self,
-            channel: discord.TextChannel
+            channel: discord.TextChannel,
+            cog_name: Union[str, None] = None
     ) -> discord.Webhook:
         if (not await channel.webhooks()):
             icon = os.environ["BOT_ICON"]
@@ -265,7 +281,10 @@ class BaseCog(commands.Cog):
                   webhook.url)
 
         config = Config.from_json(os.environ["BOT_CONFIG"])
-        webhook_dir = (f"{config.dir.webhooks}/{self.qualified_name}")
+        if (cog_name is None):
+            cog_name = self.qualified_name
+
+        webhook_dir = (f"{config.dir.webhooks}/{cog_name}")
         if (not os.path.exists(webhook_dir)):
             os.makedirs(webhook_dir)
 

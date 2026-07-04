@@ -8,7 +8,7 @@ if [ -z "$ARP_LINE" ]; then
 fi
 
 echo "Starting server $2..."
-ssh altar-pi@$1 "doas -u $2 sh -c '(
+ssh $3@$1 "doas -u $2 sh -c '(
 	cd ~;
 	podman-compose up -d
 )'"

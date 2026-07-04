@@ -3,12 +3,9 @@ import sys
 import sqlite3
 import discord
 import asyncio
-import dotenv
 from typing import Tuple, List
 from discord.ext import commands, tasks
 from lib.config import Config
-
-dotenv.load_dotenv()
 
 
 async def admin(user_id: int):

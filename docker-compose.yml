@@ -1,0 +1,19 @@
+services:
+  discord-server-cogs:
+    image: dylanwilks/discord-server-cogs
+    container_name: discord-server-cogs
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - db:/usr/src/app/db
+      - ./cogs:/usr/src/app/cogs
+      - ./config:/usr/src/app/config
+      - ./scripts:/usr/src/app/scripts
+    restart: always
+
+volumes:
+  db:
+    name: db

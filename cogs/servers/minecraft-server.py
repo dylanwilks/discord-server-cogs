@@ -9,12 +9,12 @@ from discord.ext import tasks, commands
 from lib.servercog import ServerCog
 from lib.config import Config
 
-SERVER_NAME: Final[str] = "minecraft-dylan"
+SERVER_NAME: Final[str] = "minecraft-server"
 STATE_COOLDOWN: Final[float] = 60.0
 CHECK_STATE_TIME: Final[float] = 30.0
 
 
-class MinecraftDylanServer(
+class MinecraftServer(
         ServerCog,
         name=SERVER_NAME,
         description=f"Commands for {SERVER_NAME}."
@@ -62,7 +62,7 @@ class MinecraftDylanServer(
             Attempts to start the Minecraft server {SERVER_NAME}.
             """
     )
-    @ServerCog.assert_perms(user_perm=0, channel_perm=0)
+    @ServerCog.assert_perms(user_perm=1, channel_perm=1)
     @ServerCog.assert_state(
         state=State.INACTIVE | State.HOST_INACTIVE
     )
@@ -80,10 +80,12 @@ class MinecraftDylanServer(
         await ctx.send(eval(constants.messages.servers.start))
         config = Config.from_json(os.environ["BOT_CONFIG"])
         scripts_dir = config.dir.scripts
+        remote_user = cog_config.remote_user
         await asyncio.create_subprocess_exec(
             f"{scripts_dir}/podman_up.sh",
             host_server,
             self.qualified_name,
+            remote_user,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -106,10 +108,12 @@ class MinecraftDylanServer(
             os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         host_server = cog_config.host_server
+        remote_user = cog_config.remote_user
         await asyncio.create_subprocess_exec(
             f"{scripts_dir}/podman_down.sh",
             host_server,
             self.qualified_name,
+            remote_user,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -128,11 +132,16 @@ class MinecraftDylanServer(
         cog_config = Config.from_json(
             os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
+        host_server = cog_config.host_server
+        container_name1 = cog_config.container_name1
+        remote_user = cog_config.remote_user
         get_players = await asyncio.create_subprocess_exec(
             f"{scripts_dir}/rcon.sh",
+            host_server,
             self.qualified_name,
-            cog_config.container_name1,
+            container_name1,
             'list',
+            remote_user,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -226,4 +235,4 @@ class MinecraftDylanServer(
 
 
 async def setup(bot) -> None:
-    await bot.add_cog(MinecraftDylanServer(bot))
+    await bot.add_cog(MinecraftServer(bot))

@@ -27,9 +27,9 @@ class ServerCog(OrderedCog):
         sql_dir = config.dir.sql
         with (
             open(f"{sql_dir}/create_servers.sql", "r")
-                as sql_create_server,
+            as sql_create_server,
             open(f"{sql_dir}/insert_server.sql", "r")
-                as sql_insert_server,
+            as sql_insert_server,
         ):
             create_servers_table = sql_create_server.read()
             insert_server = sql_insert_server.read()

@@ -74,13 +74,16 @@ class HelpCog(commands.Cog):
             db = sqlite3.connect(db_path, check_same_thread=False)
             db.execute("PRAGMA FOREIGN_KEYS = ON")
             cursor = db.cursor()
-            def pull_singleton(x): return x[0]
+
+            def pull_singleton(x):
+                return x[0]
+
             if isinstance(ctx.channel, discord.channel.DMChannel):
                 with (
                     open(f"{sql_dir}/select_users_table.sql", "r")
-                        as sql_select_users_table,
+                    as sql_select_users_table,
                     open(f"{sql_dir}/select_admins_table.sql", "r")
-                        as sql_select_admins_table,
+                    as sql_select_admins_table,
                 ):
                     get_users = sql_select_users_table.read()
                     get_admins = sql_select_admins_table.read()

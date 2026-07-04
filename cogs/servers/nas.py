@@ -1,19 +1,19 @@
 import os
+import discord
 import subprocess
 import asyncio
-import discord
 from enum import IntFlag, auto
 from typing import Final
 from discord.ext import tasks, commands
 from lib.servercog import ServerCog
 from lib.config import Config
 
-SERVER_NAME: Final[str] = "altar-server"
+SERVER_NAME: Final[str] = "nas"
 STATE_COOLDOWN: Final[float] = 60.0
 CHECK_STATE_TIME: Final[float] = 30.0
 
 
-class AltarServer(
+class NAS(
         ServerCog,
         name=SERVER_NAME,
         description=f"Commands for {SERVER_NAME}."
@@ -24,19 +24,6 @@ class AltarServer(
 
     state_cooldown = commands.cooldown(1, STATE_COOLDOWN)
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message) -> None:
-        server_channels = await super().get_channels()
-        if (server_channels and message.channel.id == server_channels[0]):
-            channel = await self.bot.fetch_channel(server_channels[0])
-            webhooks = await channel.webhooks()
-            if (message.author.id == webhooks[0].id):
-                server_users = await super().get_users()
-                for user_id in server_users:
-                    user = await self.bot.fetch_user(user_id)
-                    user_dm = await user.create_dm()
-                    await user_dm.send(message.content)
-
     @commands.group(
         name=SERVER_NAME,
         brief=f"Group of commands for {SERVER_NAME}.",
@@ -45,11 +32,11 @@ class AltarServer(
             """,
         invoke_without_command=True
     )
-    async def altar_group(self, ctx: commands.Context):
+    async def nas_group(self, ctx: commands.Context):
         constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(eval(constants.messages.servers.no_subcommand))
 
-    @altar_group.command(
+    @nas_group.command(
         brief=f"Prints the state of {SERVER_NAME}.",
         help=f"""
             Prints the state of {SERVER_NAME}.
@@ -60,21 +47,22 @@ class AltarServer(
             self,
             ctx: commands.Context
     ) -> None:
-        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         state = await super().get_state()
+        constants = Config.from_json(os.environ["BOT_CONSTANTS"])
         await ctx.send(eval(constants.messages.servers.state))
 
-    @altar_group.command(
+    @nas_group.command(
+        name="wakeup",
         brief="Sends a magic packet to the server.",
         help=f"""
             Attempts to wake up {SERVER_NAME}. Server will not
-            wake up if it is powered off and not hibernating.
+            wake up if it is inactive and in an unwakeable state.
             """
     )
-    @ServerCog.assert_perms(user_perm=0, channel_perm=0)
     @ServerCog.assert_state(state=State.INACTIVE)
+    @ServerCog.assert_perms(user_perm=1, channel_perm=1)
     @state_cooldown
-    async def wakeup(
+    async def nas_wakeup(
             self,
             ctx: commands.Context
     ) -> None:
@@ -84,9 +72,11 @@ class AltarServer(
         max_time = cog_config.max_start_time
         check_time = cog_config.check_start_time
         scripts_dir = config.dir.scripts
+        broadcast = cog_config.broadcast
         wakeup_server = await asyncio.create_subprocess_exec(
             f"{scripts_dir}/wake-up.sh",
             self.qualified_name,
+            broadcast,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -105,31 +95,6 @@ class AltarServer(
                 f"Could not wake up server {self.qualified_name}.",
                 self.qualified_name
             )
-
-    @altar_group.command(
-        name="hibernate",
-        brief="Manually force the device into a hibernated state.",
-        help="""
-            Attempts to put the device into a hibernated state. Requires
-            elevated privileges to use.
-            """
-    )
-    @ServerCog.assert_perms(user_perm=1, channel_perm=1)
-    @ServerCog.assert_state(state=State.ACTIVE)
-    @state_cooldown
-    async def altar_hibernate(
-            self,
-            ctx: commands.Context
-    ) -> None:
-        config = Config.from_json(os.environ["BOT_CONFIG"])
-        scripts_dir = config.dir.scripts
-        await asyncio.create_subprocess_exec(
-            f"{scripts_dir}/hibernate.sh",
-            self.qualified_name,
-            '&',
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
 
     @tasks.loop(seconds=CHECK_STATE_TIME)
     async def check_state(self) -> None:
@@ -187,4 +152,4 @@ class AltarServer(
 
 
 async def setup(bot) -> None:
-    await bot.add_cog(AltarServer(bot))
+    await bot.add_cog(NAS(bot))

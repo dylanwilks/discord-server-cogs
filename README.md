@@ -1,7 +1,8 @@
 # discord-server-cogs
 
-A personal discord bot made with discord.py that I host on a Raspberry Pi running Alpine Linux for managing servers and permissions. I've generalized the code during development
-to allow for re-use without regards to servers if desired, allowing for permission control through discord without the need for roles during runtime.
+A personal discord bot made with discord.py that I host on a Raspberry Pi for managing servers and permissions. I've generalized the code during development
+to allow for re-use without regards to servers if desired, allowing for permission control through discord without the need for roles during runtime. The bot
+also comes with an audio cog to play audio from Youtube (via yt-dlp).
 
 <img width="1086" height="304" alt="image" src="https://github.com/user-attachments/assets/9ac38b6c-addf-4774-b379-db90535625ba" />
 
@@ -65,10 +66,10 @@ Each of the subclasses will load commands under the `db` group when an instance 
 are used for manipulating and fetching data from the tables. A full list of these commands can be seen by typing `!help db` when an instance
 of these classes is loaded.
 
-To get started, a user is to be set admin, granting permission to all commands. This can be done by supplying `admin.py` with the user's ID.
+To get started, a user is to be set admin, granting permission to all commands. This can be done by supplying the `admin` command with the user's ID.
 
 ```sh
-python3 admin.py <user_id>
+docker exec <container_name> admin <user_id>
 ```
 
 ## Managing Servers
@@ -85,16 +86,17 @@ JSON files are settings that can be changed during runtime.
 ### Environment Variables
 | Parameter             |  Default   | Function                                                      |
 |-----------------------|:----------:|---------------------------------------------------------------|
-| `BOT_TOKEN`           | `REQUIRED` | Token of the bot                                              |
-| `BOT_NAME`            |    `""`    | If empty then no name change is performed                     |
-| `BOT_ICON`            | `REQUIRED` | Sets the icon of the bot and its webhooks                     |
-| `BOT_DB`              | `REQUIRED` | Path for the `.db` file                                       |
-| `BOT_PREFIX`          | `REQUIRED` | Set the prefix for your commands                              |
-| `BOT_WATCHER_SECONDS` |     `1`    | Number of seconds to wait for updates to .py files in `cogs/` |
-| `BOT_NAME_MINUTES`    |    `10`    | Number of minutes to wait for name update                     |
-| `BOT_CONSTANTS`       | `REQUIRED` | Path for the constants JSON file                              |
-| `BOT_CONFIG`          | `REQUIRED` | Path for the config JSON file                                 |
-| `BOG_COGS`            | `REQUIRED` | Path for the cogs JSON file                                   |
+| `BOT_TOKEN` | `REQUIRED` | Token of the bot |
+| `BOT_NAME` | `Discord Bot` | If blank then no name change is performed |
+| `BOT_ICON` | `""` | Sets the icon of the bot and its webhooks if not blank |
+| `BOT_DB` | `~/db/bot.db` | Path for the `.db` file |
+| `BOT_PREFIX` | `!` | Set the prefix for your commands |
+| `BOT_WATCHER_SECONDS` | `1.0` | Number of seconds to wait for updates to .py files in `cogs/` |
+| `BOT_NAME_MINUTES` | `10.0` | Number of minutes to wait for name update and change back |
+| `BOT_CONSTANTS` | `~/config/constants.json` | Path for the constants JSON file |
+| `BOT_CONFIG` | `~/config/config.json` | Path for the config JSON file |
+| `BOG_COGS` | `~/config/cogs.json` | Path for the cogs JSON file |
+| `PRIVATE_KEYS` | `""` | ssh keys mounted in to add to the ssh agent |
 
 You may add extra fields to the JSON files. A class `Config` is provided to aid in reading JSON files, and may be used like so:
 ```python
@@ -104,3 +106,57 @@ constants = Config.from_json(os.environ["BOT_CONSTANTS"])
 await ctx.send(eval(constants.messages.servers.no_subcommand))
 ...
 ```
+## Usage/Development
+Some notes on developing extensions/cogs during runtime and utilizing existing commands:
+
+### Adding and modifying a extension/cog
+All development should be done outside of the container. Extensions should be mounted in. If you have added an extension `cogs/path/ext.py` during runtime, running 
+```
+!bot load-extension cogs.path.ext
+```
+will load the extension. Modifications to any extensions loaded within [`cogs/`](https://github.com/dylanwilks/discord-server-cogs/tree/main/cogs) 
+and its subdirectories will cause them to be automatically reloaded. All extensions are loaded on container start unless they begin with `_`.
+Keep in mind that `!help` will only list commands that can be used by the caller.
+
+### Audio
+The audio cog in [`cogs/audio.py`](https://github.com/dylanwilks/discord-server-cogs/tree/main/cogs/audio.py) provides basic audio 
+functionality to queue, pause, loop, and rotate videos from Youtube (audio only).
+Commands require the user to be in a voice channel to operate. Additional configs are in [`cogs.json`](https://github.com/dylanwilks/discord-server-cogs/tree/main/cogs/cogs.json).
+For yt-dlp to solve Javascript challenges the image only comes with quickjs at the moment. If this causes slow play times,
+comment out the following line (or build the image with a faster alternative):
+```python
+'js_runtimes': {'quickjs': {'path': None}},
+```
+
+## Running and logging
+Preferably with Docker Compose, have a file called `docker-compose.yml` with
+```
+services:
+  discord-server-cogs:
+    image: dylanwilks/discord-server-cogs
+    container_name: discord-server-cogs
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - db:/usr/src/app/db
+      - ./cogs:/usr/src/app/cogs
+      - ./config:/usr/src/app/config
+      - ./scripts:/usr/src/app/scripts
+    restart: always
+
+volumes:
+  db:
+    name: db
+```
+and then call
+```
+docker compose up
+```
+to build and run the container.
+
+All messages from the program will be printed to the container's shell and can thus be read with `docker attach` or `docker logs`.
+More detailed logs are present in `handler.log`, `errors.log`, and `commands.log`, which are located in the container. Their paths
+are specified in [`config.json`](https://github.com/dylanwilks/discord-server-cogs/tree/main/config/config.json).

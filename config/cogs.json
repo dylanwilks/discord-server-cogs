@@ -1,0 +1,40 @@
+{
+	"servers": {
+		"host-server": {
+            "max_start_time": 180,
+            "check_start_time": 10,
+            "remote_user": "discord-server-cogs",
+            "remote_webhooks": "~/webhooks/",
+            "broadcast": "192.168.0.255"
+		},
+
+		"nas": {
+			"max_start_time": 180,
+			"check_start_time": 10,
+            "broadcast": "192.168.0.255"
+		},
+
+		"pz-server": {
+			"host_server": "host-server",
+			"container_name1": "project-zomboid-server"
+		},
+
+		"minecraft-server": {
+			"host_server": "host-server",
+            "remote_user": "discord-server-cogs",
+			"container_name1": "minecraft-server"
+		},
+
+		"satisfactory-server": {
+			"host_server": "host-server",
+            "remote_user": "discord-server-cogs"
+		}
+	},
+
+    "audio": {
+        "queue_limit": 10,
+        "timeout_empty": 30,
+        "timeout_inactive": 30,
+        "timeout_paused": 3600
+    }
+}

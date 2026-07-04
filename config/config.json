@@ -14,8 +14,8 @@
 	},
 
 	"logs": {
-		"handler": "/var/log/discord/alpine-bot.log",
-		"errors": "/var/log/discord/errors.log",
-		"commands": "/var/log/discord/commands.log"
+		"handler": "/usr/src/app/log/handler.log",
+		"errors": "/usr/src/app/log/errors.log",
+		"commands": "/usr/src/app/log/commands.log"
 	}
 }

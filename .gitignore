@@ -1,10 +1,4 @@
 *.swo
 *.swp
-start-bot.sh
-TODO
-backups/
 __pycache__/
-nohup.out
-alpine-bot.db
 webhooks/
-.env

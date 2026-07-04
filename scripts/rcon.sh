@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ssh altar-pi@altar-server "doas -u $1 sh -c '(
+ssh $5@$1 "doas -u $2 sh -c '(
 	cd ~;
-	podman exec $2 rcon-cli $3 
+	podman exec $3 rcon-cli $4 
 )'"

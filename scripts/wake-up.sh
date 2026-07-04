@@ -8,7 +8,6 @@ if [ -z "$ARP_LINE" ]; then
 fi
 
 #IP="$ARP_LINE" | cut -d " " -f 2 | tr -d '()'
-BROADCAST="192.168.0.255"
 MAC=$(echo $ARP_LINE | cut -d " " -f 4)
 
-wakeonlan -i $BROADCAST $MAC
+wakeonlan -i $2 $MAC

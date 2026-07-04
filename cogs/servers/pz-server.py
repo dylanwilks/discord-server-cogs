@@ -61,7 +61,7 @@ class ProjectZomboidServer(
             Attempts to start the Project Zomboid server {SERVER_NAME}.
             """
     )
-    @ServerCog.assert_perms(user_perm=0, channel_perm=0)
+    @ServerCog.assert_perms(user_perm=1, channel_perm=1)
     @ServerCog.assert_state(
         state=State.INACTIVE | State.HOST_INACTIVE
     )
@@ -79,10 +79,12 @@ class ProjectZomboidServer(
         await ctx.send(eval(constants.messages.servers.start))
         config = Config.from_json(os.environ["BOT_CONFIG"])
         scripts_dir = config.dir.scripts
+        remote_user = cog_config.remote_user
         await asyncio.create_subprocess_exec(
             f"{scripts_dir}/podman_up.sh",
             host_server,
             self.qualified_name,
+            remote_user,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -106,10 +108,12 @@ class ProjectZomboidServer(
             os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
         host_server = cog_config.host_server
+        remote_user = cog_config.remote_user
         await asyncio.create_subprocess_exec(
             f"{scripts_dir}/podman_down.sh",
             host_server,
             self.qualified_name,
+            remote_user,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -128,11 +132,16 @@ class ProjectZomboidServer(
         cog_config = Config.from_json(
             os.environ["BOT_COGS"]).servers[SERVER_NAME]
         scripts_dir = config.dir.scripts
+        host_server = cog_config.host_server
+        container_name1 = cog_config.container_name1
+        remote_user = cog_config.remote_user
         get_players = await asyncio.create_subprocess_exec(
             f"{scripts_dir}/rcon.sh",
+            host_server,
             self.qualified_name,
-            cog_config.container_name1,
+            container_name1,
             'players',
+            remote_user,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
