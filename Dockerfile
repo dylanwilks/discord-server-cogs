@@ -8,7 +8,6 @@ ARG HOME=/usr/src/app
 ARG ADMIN=/usr/local/bin/admin
 ENV PATH="$HOME/venv/bin:$HOME/.local/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
-ENV BOT_NAME="Discord Bot"
 ENV BOT_PREFIX=!
 ENV BOT_WATCHER_SECONDS=3.0
 ENV BOT_NAME_MINUTES=10.0
@@ -40,12 +39,16 @@ RUN useradd -r -M -d $HOME -u $UID -g $GID $USER
 WORKDIR $HOME
 RUN chown $UID:$UID $HOME
 RUN chmod 700 $HOME
-COPY --chown=$USER:$USER . .
 
 # Switch user and download python files
+COPY --chown=$USER:$USER requirements.txt ./
 USER $USER
 RUN python -m venv $HOME/venv
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+USER root
+COPY --chown=$USER:$USER . .
+RUN chmod +x start-bot.sh
 
 # Run container as user
+USER $USER
 ENTRYPOINT ["./start-bot.sh"]
