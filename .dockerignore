@@ -1,0 +1,10 @@
+*.swp
+*.swo
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+.env
+LICENSE
+README.md
+.dockerignore
