@@ -268,14 +268,9 @@ class BaseCog(commands.Cog):
             cog_name: Union[str, None] = None
     ) -> discord.Webhook:
         if (not await channel.webhooks()):
-            icon = os.environ["BOT_ICON"]
-            with open(icon, "rb") as image:
-                img = image.read()
-                img_b = bytearray(img)
-                webhook = await channel.create_webhook(
-                    name=f"{channel.name}-webhook",
-                    avatar=img_b
-                )
+            webhook = await channel.create_webhook(
+                name=f"{channel.name}-webhook"
+            )
 
             print(f"Created webhook {channel.name}-webhook with URL",
                   webhook.url)
