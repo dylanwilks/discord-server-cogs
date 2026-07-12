@@ -3,6 +3,8 @@
 .git
 .gitignore
 .github
+Dockerfile
+.dockerignore
 docker-compose.yml
 .env
 LICENSE
